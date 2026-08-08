@@ -1,0 +1,19 @@
+# OpenNotebook config — copy to ~/.opennotebook/config.yaml or edit via the UI.
+# Defaults (below commented values) make local-only use work with zero config.
+llm:
+  base_url: https://integrate.api.nvidia.com/v1   # or http://localhost:1234/v1 (LM Studio), http://localhost:11434/v1 (Ollama)
+  api_key: ${NVIDIA_API_KEY}                       # env var expansion is manual; set your real key
+  model: nvidia/llama-3.1-nemotron-70b
+  max_context: null                                 # null = infer reasonable default per model size
+
+embeddings:
+  provider: bundled                                 # bundled (CPU sentence-transformers) | openai_compatible
+  # base_url / api_key / model only used when provider: openai_compatible
+
+reranker:
+  provider: bundled                                 # bundled cross-encoder (MVP). openai_compatible is a deferred extension.
+
+whisper:
+  provider: bundled                                 # bundled faster-whisper | openai_compatible
+  model: small                                      # tiny | base | small | medium | large
+  # base_url / api_key used only when provider: openai_compatible
