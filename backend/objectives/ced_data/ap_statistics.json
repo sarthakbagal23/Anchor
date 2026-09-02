@@ -1,0 +1,258 @@
+{
+  "course": "AP Statistics",
+  "exam_type": "AP",
+  "note": "Reference skeleton of the official AP Statistics CED framework: unit/topic numbers and skill codes are official identifiers; objective statements are short paraphrases (no verbatim CED prose). Skill sub-codes are indicative and should be verified against the official CED during QA.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Exploring One-Variable Data",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: What Can We Learn from Data?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain how statistics can be used to answer questions about data and variation."}
+        ]},
+        {"number": 2, "title": "The Language of Variation: Variables", "objectives": [
+          {"skill_code": "1.B", "statement": "Distinguish categorical from quantitative variables and describe the role of variation in data."}
+        ]},
+        {"number": 3, "title": "Representing a Categorical Variable with Tables", "objectives": [
+          {"skill_code": "2.A", "statement": "Construct and interpret frequency and relative frequency tables for a categorical variable."}
+        ]},
+        {"number": 4, "title": "Representing a Categorical Variable with Graphs", "objectives": [
+          {"skill_code": "2.A", "statement": "Construct and interpret bar charts and pie charts for categorical data."}
+        ]},
+        {"number": 5, "title": "Representing a Quantitative Variable with Graphs", "objectives": [
+          {"skill_code": "2.A", "statement": "Construct and interpret dotplots, stemplots, and histograms to display the distribution of a quantitative variable."},
+          {"skill_code": "5.A", "statement": "Read and compare graphical displays of quantitative data, including identifying unusual features."}
+        ]},
+        {"number": 6, "title": "Describing the Distribution of a Quantitative Variable", "objectives": [
+          {"skill_code": "2.A", "statement": "Describe the shape, center, and spread of a distribution of a quantitative variable in context."}
+        ]},
+        {"number": 7, "title": "Summary Statistics for a Quantitative Variable", "objectives": [
+          {"skill_code": "2.B", "statement": "Calculate and interpret measures of center (mean, median) and measures of spread (range, IQR, standard deviation)."},
+          {"skill_code": "2.B", "statement": "Explain how outliers and skew affect summary statistics such as mean, median, range, IQR, and standard deviation."}
+        ]},
+        {"number": 8, "title": "Graphical Representations of Summary Statistics", "objectives": [
+          {"skill_code": "2.A", "statement": "Construct and interpret boxplots and the five-number summary for a quantitative variable."}
+        ]},
+        {"number": 9, "title": "Comparing Distributions of a Quantitative Variable", "objectives": [
+          {"skill_code": "5.C", "statement": "Compare distributions of a quantitative variable across groups using center, spread, shape, and outliers."}
+        ]}
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Exploring Two-Variable Data",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Are Variables Related?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain how statistics can be used to investigate relationships between two variables."}
+        ]},
+        {"number": 2, "title": "Representing Two Categorical Variables", "objectives": [
+          {"skill_code": "2.A", "statement": "Construct and interpret two-way frequency tables for two categorical variables."}
+        ]},
+        {"number": 3, "title": "Statistics for Two Categorical Variables", "objectives": [
+          {"skill_code": "2.B", "statement": "Compute and interpret row, column, and overall relative frequencies in a two-way table."}
+        ]},
+        {"number": 4, "title": "Representing the Relationship Between Two Quantitative Variables", "objectives": [
+          {"skill_code": "2.A", "statement": "Construct and interpret scatterplots to display the relationship between two quantitative variables."}
+        ]},
+        {"number": 5, "title": "Correlation", "objectives": [
+          {"skill_code": "2.B", "statement": "Describe the strength and direction of a linear relationship and explain properties of the correlation coefficient."}
+        ]},
+        {"number": 6, "title": "Linear Regression Models", "objectives": [
+          {"skill_code": "2.B", "statement": "Interpret the slope and intercept of a least-squares regression line and use it to make predictions."}
+        ]}
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Collecting Data",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Do the Data We Collected Tell the Truth?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain why sampling and study design matter for the validity of conclusions."}
+        ]},
+        {"number": 2, "title": "Introduction to Planning a Study", "objectives": [
+          {"skill_code": "1.C", "statement": "Identify the population, sample, and parameters or statistics of interest in a study."}
+        ]},
+        {"number": 3, "title": "Random Sampling and Data Collection", "objectives": [
+          {"skill_code": "3.A", "statement": "Describe and use simple random sampling and other probability sampling methods."}
+        ]},
+        {"number": 4, "title": "Potential Problems with Sampling", "objectives": [
+          {"skill_code": "3.A", "statement": "Explain sampling bias, nonresponse, undercoverage, and response bias and their effects."}
+        ]},
+        {"number": 5, "title": "Introduction to Experimental Design", "objectives": [
+          {"skill_code": "1.C", "statement": "Distinguish observational studies from experiments and explain the role of random assignment."}
+        ]},
+        {"number": 6, "title": "Selecting an Experimental Design", "objectives": [
+          {"skill_code": "1.D", "statement": "Describe completely randomized, blocked, and matched-pairs experimental designs."}
+        ]},
+        {"number": 7, "title": "Inference and Experiments", "objectives": [
+          {"skill_code": "4.A", "statement": "Explain how random assignment supports cause-and-effect conclusions and how random sampling supports generalizing."}
+        ]}
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Probability, Random Variables, and Probability Distributions",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Random and Non-Random Patterns?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain how probability models randomness and variation."}
+        ]},
+        {"number": 2, "title": "Estimating Probabilities Using Simulation", "objectives": [
+          {"skill_code": "3.A", "statement": "Use simulations to estimate probabilities of outcomes from a process or chance model."}
+        ]},
+        {"number": 3, "title": "Introduction to Probability", "objectives": [
+          {"skill_code": "3.B", "statement": "Apply the basic rules of probability to compute probabilities of outcomes."}
+        ]},
+        {"number": 4, "title": "Mutually Exclusive Events", "objectives": [
+          {"skill_code": "3.B", "statement": "Determine when events are mutually exclusive and find probabilities of their union."}
+        ]},
+        {"number": 5, "title": "Conditional Probability", "objectives": [
+          {"skill_code": "3.C", "statement": "Compute and interpret conditional probabilities and use them in two-way tables."}
+        ]},
+        {"number": 6, "title": "Independent Events and Unions of Events", "objectives": [
+          {"skill_code": "3.C", "statement": "Determine independence of events and use the multiplication rule for independent events."}
+        ]},
+        {"number": 7, "title": "Introduction to Random Variables and Probability Distributions", "objectives": [
+          {"skill_code": "3.D", "statement": "Construct and interpret discrete probability distributions for random variables."}
+        ]},
+        {"number": 8, "title": "Mean and Standard Deviation of Random Variables", "objectives": [
+          {"skill_code": "3.D", "statement": "Calculate the mean and standard deviation of a discrete random variable."}
+        ]},
+        {"number": 9, "title": "Combining Random Variables", "objectives": [
+          {"skill_code": "3.E", "statement": "Find the mean and variance of sums and differences of independent random variables."}
+        ]},
+        {"number": 10, "title": "Introduction to the Binomial Distribution", "objectives": [
+          {"skill_code": "3.F", "statement": "Determine whether a situation fits a binomial setting and calculate binomial probabilities."}
+        ]},
+        {"number": 11, "title": "Parameters for a Binomial Distribution", "objectives": [
+          {"skill_code": "3.F", "statement": "Find the mean and standard deviation of a binomial random variable and use them in context."}
+        ]}
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Sampling Distributions",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Why Is My Sample Not Like Yours?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain what a sampling distribution is and why statistics vary from sample to sample."}
+        ]},
+        {"number": 2, "title": "The Normal Distribution, Revisited", "objectives": [
+          {"skill_code": "3.D", "statement": "Use the Normal distribution to describe distributions and find percentiles and proportions."}
+        ]},
+        {"number": 3, "title": "The Central Limit Theorem", "objectives": [
+          {"skill_code": "3.D", "statement": "Describe the sampling distribution of a sample mean and sample proportion using the Central Limit Theorem."}
+        ]},
+        {"number": 4, "title": "Biased and Unbiased Point Estimates", "objectives": [
+          {"skill_code": "3.D", "statement": "Define and compare biased versus unbiased point estimates and standard error."}
+        ]}
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Inference for Categorical Data: Proportions",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Why Be Normal?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain how the sampling distribution of a sample proportion enables inference about a population proportion."}
+        ]},
+        {"number": 2, "title": "Constructing a Confidence Interval for a Population Proportion", "objectives": [
+          {"skill_code": "4.A", "statement": "Construct and interpret a confidence interval for a population proportion and state its conditions."}
+        ]},
+        {"number": 3, "title": "Justifying a Claim Based on a Confidence Interval", "objectives": [
+          {"skill_code": "4.A", "statement": "Decide whether a claimed value of a population proportion is plausible given a confidence interval."}
+        ]},
+        {"number": 4, "title": "Setting Up a Test for a Population Proportion", "objectives": [
+          {"skill_code": "3.F", "statement": "State hypotheses and conditions for a one-sample proportion z-test."}
+        ]},
+        {"number": 5, "title": "Interpreting P-Values", "objectives": [
+          {"skill_code": "4.A", "statement": "Interpret a p-value in context as a probability under the null hypothesis."}
+        ]},
+        {"number": 6, "title": "Concluding a Test for a Population Proportion", "objectives": [
+          {"skill_code": "4.A", "statement": "Make a conclusion for a one-sample proportion z-test in context and compare it with a significance level."}
+        ]}
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Inference for Quantitative Data: Means",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Should I Worry About Error Intervals?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain how the sampling distribution of a sample mean enables inference about a population mean."}
+        ]},
+        {"number": 2, "title": "Constructing a Confidence Interval for a Population Mean", "objectives": [
+          {"skill_code": "4.A", "statement": "Construct and interpret a confidence interval for a population mean using a t-interval and state its conditions."}
+        ]},
+        {"number": 3, "title": "Justifying a Claim about a Population Mean Based on a Confidence Interval", "objectives": [
+          {"skill_code": "4.A", "statement": "Decide whether a claimed value of a population mean is plausible given a confidence interval."}
+        ]},
+        {"number": 4, "title": "Setting Up a Test for a Population Mean", "objectives": [
+          {"skill_code": "3.F", "statement": "State hypotheses and conditions for a one-sample t-test for a population mean."}
+        ]},
+        {"number": 5, "title": "Interpreting P-Values for a Test of a Population Mean", "objectives": [
+          {"skill_code": "4.A", "statement": "Interpret a p-value for a one-sample t-test in context."}
+        ]},
+        {"number": 6, "title": "Concluding a Test for a Population Mean", "objectives": [
+          {"skill_code": "4.A", "statement": "Make a conclusion for a one-sample t-test in context and compare it with a significance level."}
+        ]},
+        {"number": 7, "title": "Justifying a Claim about the Difference of Two Means Based on a Confidence Interval", "objectives": [
+          {"skill_code": "4.A", "statement": "Construct, interpret, and reason with a confidence interval for the difference of two population means."}
+        ]},
+        {"number": 8, "title": "Setting Up a Test for the Difference of Two Population Means", "objectives": [
+          {"skill_code": "3.F", "statement": "State hypotheses and conditions for a two-sample t-test for the difference of two population means."}
+        ]},
+        {"number": 9, "title": "Interpreting P-Values for Tests of the Difference of Two Means", "objectives": [
+          {"skill_code": "4.A", "statement": "Interpret a p-value for a two-sample t-test in context."}
+        ]},
+        {"number": 10, "title": "Concluding a Test for the Difference of Two Means", "objectives": [
+          {"skill_code": "4.A", "statement": "Make a conclusion for a two-sample t-test in context and compare it with a significance level."}
+        ]}
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Inference for Categorical Data: Chi-Square",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Are My Results Unexpected?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain why chi-square tests are used to compare observed counts with expected counts."}
+        ]},
+        {"number": 2, "title": "The Chi-Square Statistic", "objectives": [
+          {"skill_code": "3.F", "statement": "Calculate the chi-square statistic from observed and expected counts."}
+        ]},
+        {"number": 3, "title": "The Chi-Square Test for Goodness of Fit", "objectives": [
+          {"skill_code": "4.A", "statement": "Run a chi-square goodness-of-fit test and interpret its results in context."}
+        ]},
+        {"number": 4, "title": "The Chi-Square Test for Homogeneity", "objectives": [
+          {"skill_code": "4.A", "statement": "Run a chi-square test for homogeneity and interpret its results in context."}
+        ]},
+        {"number": 5, "title": "The Chi-Square Test for Independence", "objectives": [
+          {"skill_code": "4.A", "statement": "Run a chi-square test for independence and interpret its results in context."}
+        ]},
+        {"number": 6, "title": "Selecting an Appropriate Inference Procedure", "objectives": [
+          {"skill_code": "1.E", "statement": "Select the appropriate chi-square test (goodness of fit, homogeneity, independence) for a given context."}
+        ]}
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Inference for Quantitative Data: Slopes",
+      "topics": [
+        {"number": 1, "title": "Introducing Statistics: Do Those Points Align?", "objectives": [
+          {"skill_code": "1.A", "statement": "Explain how inference about the slope of a regression model lets us reason about a bivariate population."}
+        ]},
+        {"number": 2, "title": "Confidence Intervals for the Slope of a Regression Model", "objectives": [
+          {"skill_code": "4.A", "statement": "Construct and interpret a confidence interval for the slope of a least-squares regression line."}
+        ]},
+        {"number": 3, "title": "Justifying a Claim about the Slope of a Regression Model Based on a Confidence Interval", "objectives": [
+          {"skill_code": "4.A", "statement": "Decide whether a claimed slope value is plausible given a confidence interval and interpret association versus causation."}
+        ]},
+        {"number": 4, "title": "Setting Up a Test for the Slope of a Regression Model", "objectives": [
+          {"skill_code": "3.F", "statement": "State hypotheses and conditions for a t-test for the slope of a regression line."}
+        ]},
+        {"number": 5, "title": "Interpreting P-Values for Tests of the Slope of a Regression Model", "objectives": [
+          {"skill_code": "4.A", "statement": "Interpret a p-value for a slope test in context."}
+        ]},
+        {"number": 6, "title": "Concluding a Test for the Slope of a Regression Model", "objectives": [
+          {"skill_code": "4.A", "statement": "Make a conclusion for a slope test in context and compare it with a significance level."}
+        ]}
+      ]
+    }
+  ]
+}

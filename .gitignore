@@ -6,3 +6,10 @@ dist/
 build/
 .eggs/
 *.egg-info/
+.uv-cache/
+# runtime artifacts (not source)
+*.db-wal
+*.db-shm
+*.log
+server-err.log
+server-out.log

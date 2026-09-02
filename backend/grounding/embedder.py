@@ -72,7 +72,10 @@ def get_embedder(cfg: AppConfig) -> Embedder:
     e = cfg.embeddings
     if e.provider == "openai_compatible" and e.base_url:
         return _OpenAICompatibleEmbedder(e.base_url, e.api_key, e.model)
-    return _BundledEmbedder(e.model)
+    try:
+        return _BundledEmbedder(e.model)
+    except Exception:
+        return _HashingEmbedder()
 
 
 if __name__ == "__main__":

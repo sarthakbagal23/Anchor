@@ -10,10 +10,12 @@ import yaml
 
 DEFAULT_CONFIG_DIR = Path(os.environ.get("OPENNOTEBOOK_CONFIG_DIR", Path.home() / ".opennotebook"))
 DEFAULTS_YAML = """
+data_dir: null
 llm:
   base_url: null
   api_key: null
   model: null
+  vision_model: meta/llama-3.2-11b-vision-instruct
   max_context: null
 embeddings:
   provider: bundled
@@ -47,13 +49,18 @@ class Section:
 class LLMSection:
     base_url: str | None = None
     api_key: str | None = None
-    model: str | None = None
+    model: str | None = None       # standard model
+    fast_model: str | None = None  # faster alternative
+    vision_model: str | None = None  # multimodal model used to "see" PDF pages
+    active: str | None = "standard"  # "standard" | "fast"
     max_context: int | None = None
 
 
 @dataclass
 class AppConfig:
     llm: LLMSection = field(default_factory=LLMSection)
+    data_dir: str | None = None  # where uploaded PDFs + rendered page images are stored
+    embeddings: Section = field(default_factory=Section)
     embeddings: Section = field(default_factory=Section)
     reranker: Section = field(default_factory=Section)
     whisper: Section = field(default_factory=lambda: Section(model="small"))
@@ -99,6 +106,14 @@ def load_config() -> AppConfig:
             f.write(DEFAULTS_YAML.strip())
         merged = base
     return _validate(_coerce(merged))
+
+
+def data_dir(cfg: AppConfig | None = None) -> Path:
+    """Effective storage dir for uploaded PDFs + rendered page images."""
+    if cfg is not None and cfg.data_dir:
+        return Path(cfg.data_dir)
+    base = Path(os.environ.get("OPENNOTEBOOK_CONFIG_DIR", DEFAULT_CONFIG_DIR))
+    return base / "data"
 
 
 def save_config(cfg: AppConfig) -> None:

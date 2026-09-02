@@ -1,0 +1,1 @@
+"""Study guide generation persistence (study_guides / guide_sections)."""
