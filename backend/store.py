@@ -115,6 +115,41 @@ CREATE TABLE IF NOT EXISTS guide_sections(
   FOREIGN KEY(objective_id) REFERENCES learning_objectives(id)
 );
 CREATE INDEX IF NOT EXISTS idx_guide_sections_guide ON guide_sections(guide_id);
+CREATE TABLE IF NOT EXISTS practice_quizzes(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  workspace_id INTEGER NOT NULL,
+  unit_id INTEGER,
+  question_count INTEGER NOT NULL DEFAULT 0,
+  created_at REAL NOT NULL,
+  FOREIGN KEY(workspace_id) REFERENCES workspaces(id),
+  FOREIGN KEY(unit_id) REFERENCES units(id)
+);
+CREATE INDEX IF NOT EXISTS idx_practice_quizzes_ws ON practice_quizzes(workspace_id);
+CREATE TABLE IF NOT EXISTS practice_questions(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  quiz_id INTEGER NOT NULL,
+  ord INTEGER NOT NULL,
+  objective_id INTEGER,
+  skill_code TEXT,
+  prompt TEXT NOT NULL,
+  options TEXT NOT NULL,          -- JSON: {"a": "...", "b": "...", "c": "...", "d": "..."}
+  correct_option TEXT NOT NULL,   -- "a".."d"; held ONLY server-side, never sent to client pre-answer
+  explanation TEXT NOT NULL DEFAULT '',
+  FOREIGN KEY(quiz_id) REFERENCES practice_quizzes(id),
+  FOREIGN KEY(objective_id) REFERENCES learning_objectives(id)
+);
+CREATE INDEX IF NOT EXISTS idx_practice_questions_quiz ON practice_questions(quiz_id);
+CREATE TABLE IF NOT EXISTS practice_attempts(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  quiz_id INTEGER NOT NULL,
+  question_id INTEGER NOT NULL,
+  selected_option TEXT,
+  correct INTEGER NOT NULL,
+  created_at REAL NOT NULL,
+  FOREIGN KEY(quiz_id) REFERENCES practice_quizzes(id),
+  FOREIGN KEY(question_id) REFERENCES practice_questions(id)
+);
+CREATE INDEX IF NOT EXISTS idx_practice_attempts_quiz ON practice_attempts(quiz_id, question_id);
 """
 
 
@@ -622,6 +657,103 @@ class Store:
         self.conn.execute(f"DELETE FROM study_guides WHERE id IN ({ph})", ids)
         self.conn.commit()
 
+    # --- practice quizzes (server-graded multiple choice) ---
+    def create_practice_quiz(self, workspace_id: int, unit_id: int | None) -> int:
+        cur = self.conn.execute(
+            "INSERT INTO practice_quizzes(workspace_id, unit_id, created_at) VALUES(?,?,?)",
+            (workspace_id, unit_id, time.time()),
+        )
+        self.conn.commit()
+        return cur.lastrowid
+
+    def set_practice_question_count(self, quiz_id: int, count: int) -> None:
+        self.conn.execute(
+            "UPDATE practice_quizzes SET question_count=? WHERE id=?", (count, quiz_id)
+        )
+        self.conn.commit()
+
+    def add_practice_question(
+        self, quiz_id: int, ord_: int, prompt: str, options: dict, correct_option: str,
+        explanation: str, objective_id: int | None = None, skill_code: str | None = None,
+    ) -> int:
+        import json as _json
+        cur = self.conn.execute(
+            "INSERT INTO practice_questions"
+            "(quiz_id, ord, objective_id, skill_code, prompt, options, correct_option, explanation) "
+            "VALUES(?,?,?,?,?,?,?,?)",
+            (quiz_id, ord_, objective_id, skill_code, prompt, _json.dumps(options),
+             correct_option, explanation),
+        )
+        self.conn.commit()
+        return cur.lastrowid
+
+    def get_latest_practice_quiz(self, workspace_id: int) -> dict | None:
+        r = self.conn.execute(
+            "SELECT * FROM practice_quizzes WHERE workspace_id=? ORDER BY created_at DESC, id DESC LIMIT 1",
+            (workspace_id,),
+        ).fetchone()
+        return dict(r) if r else None
+
+    def get_practice_quiz(self, quiz_id: int) -> dict | None:
+        r = self.conn.execute(
+            "SELECT * FROM practice_quizzes WHERE id=?", (quiz_id,)
+        ).fetchone()
+        return dict(r) if r else None
+
+    def get_practice_questions(self, quiz_id: int, include_answer: bool = False) -> list[dict]:
+        import json as _json
+        rows = self.conn.execute(
+            "SELECT * FROM practice_questions WHERE quiz_id=? ORDER BY ord", (quiz_id,)
+        )
+        out = []
+        for r in rows:
+            d = dict(r)
+            try:
+                d["options"] = _json.loads(d.get("options") or "{}")
+            except Exception:
+                d["options"] = {}
+            if not include_answer:
+                d.pop("correct_option", None)
+            out.append(d)
+        return out
+
+    def get_practice_question(self, question_id: int) -> dict | None:
+        r = self.conn.execute(
+            "SELECT * FROM practice_questions WHERE id=?", (question_id,)
+        ).fetchone()
+        return dict(r) if r else None
+
+    def get_question_correct_answer(self, question_id: int) -> str | None:
+        r = self.conn.execute(
+            "SELECT correct_option FROM practice_questions WHERE id=?", (question_id,)
+        ).fetchone()
+        return r[0] if r else None
+
+    def add_practice_attempt(
+        self, quiz_id: int, question_id: int, selected_option: str, correct: bool
+    ) -> None:
+        self.conn.execute(
+            "INSERT INTO practice_attempts(quiz_id, question_id, selected_option, correct, created_at) "
+            "VALUES(?,?,?,?,?)",
+            (quiz_id, question_id, selected_option, 1 if correct else 0, time.time()),
+        )
+        self.conn.commit()
+
+    def get_practice_attempts(self, quiz_id: int) -> list[dict]:
+        return [
+            dict(r)
+            for r in self.conn.execute(
+                "SELECT * FROM practice_attempts WHERE quiz_id=? ORDER BY id", (quiz_id,)
+            )
+        ]
+
+    def get_latest_attempt(self, question_id: int) -> dict | None:
+        r = self.conn.execute(
+            "SELECT * FROM practice_attempts WHERE question_id=? ORDER BY id DESC LIMIT 1",
+            (question_id,),
+        ).fetchone()
+        return dict(r) if r else None
+
     # --- messages ---
     def add_message(self, workspace_id: int, role: str, content: str) -> None:
         self.conn.execute(
@@ -729,5 +861,61 @@ if __name__ == "__main__":
     store.delete_unit(unit_id)
     assert store.get_workspace(ws)["unit_id"] is None
     assert store.get_source(s)["unit_id"] is None
+
+    # practice quiz persistence: create quiz, add server-sided correct answers,
+    # fetch public (answer-stripped) + internal (answer-kept) views, record attempts.
+    pw, pcourse, punit = store.create_course_unit_workspace("Practice Course")
+    pz = store.create_practice_quiz(pw, punit)
+    store.set_practice_question_count(pz, 2)
+    pq1 = store.add_practice_question(
+        pz, 0, "What is the derivative of x^2?", {"a": "x", "b": "2x", "c": "x^2", "d": "2"},
+        correct_option="b", explanation="By the power rule.", objective_id=None, skill_code="2.A",
+    )
+    pq2 = store.add_practice_question(pz, 1, "Define a limit.", {"a": "A", "b": "B", "c": "C", "d": "D"},
+                                      correct_option="a", explanation="Epsilon-delta.")
+    assert store.get_practice_quiz(pz)["workspace_id"] == pw
+    latest = store.get_latest_practice_quiz(pw)
+    assert latest and latest["id"] == pz and latest["question_count"] == 2
+    public_q = store.get_practice_questions(pz, include_answer=False)
+    assert len(public_q) == 2 and "correct_option" not in public_q[0], \
+        "public view must never leak the correct answer"
+    internal_q = store.get_practice_questions(pz, include_answer=True)
+    assert internal_q[0]["correct_option"] == "b"
+    assert store.get_question_correct_answer(pq1) == "b"
+    store.add_practice_attempt(pz, pq1, "b", True)
+    store.add_practice_attempt(pz, pq2, "c", False)
+    attempts = store.get_practice_attempts(pz)
+    assert len(attempts) == 2 and attempts[0]["correct"] == 1 and attempts[1]["correct"] == 0
+    assert store.get_latest_attempt(pq2)["selected_option"] == "c"
+
+    # local-mode round-trip (unscoped): local mode has no user concept, so every
+    # row written without a user MUST be readable back. Regression guard for the
+    # cloud-scoping failure mode where a `WHERE user_id = ?` clause binds None:
+    # `user_id = NULL` never matches in SQL, so it silently empties exactly these
+    # three paths (objectives -> "no learning objectives", study guide + practice
+    # quiz generation). Covers objectives, study guides, and practice quizzes.
+    lw, _, lunit = store.create_course_unit_workspace("Local Roundtrip")
+    lo = store.add_learning_objective(lunit, "local roundtrip objective", source_type="extracted")
+    got_objs = store.list_unit_objectives(lunit)
+    assert [o["id"] for o in got_objs] == [lo], \
+        f"local read must return locally-written objective, got {got_objs}"
+    assert [o["id"] for o in store.list_unit_objectives(lunit, source_type="extracted")] == [lo]
+    lg = store.create_study_guide(lw, lunit)
+    store.set_guide_objective_count(lg, 1)
+    store.add_guide_section(lg, 0, "Local section", "Local body.", {}, objective_id=lo)
+    assert store.get_latest_study_guide(lw)["id"] == lg, "local read must return locally-written guide"
+    assert [s["title"] for s in store.get_guide_sections(lg)] == ["Local section"]
+    lz = store.create_practice_quiz(lw, lunit)
+    lq = store.add_practice_question(
+        lz, 0, "Local question?", {"a": "yes", "b": "no", "c": "maybe", "d": "skip"},
+        correct_option="a", explanation="Local explanation.", objective_id=lo,
+    )
+    store.set_practice_question_count(lz, 1)
+    assert store.get_latest_practice_quiz(lw)["id"] == lz, "local read must return locally-written quiz"
+    pub = store.get_practice_questions(lz, include_answer=False)
+    assert [q["id"] for q in pub] == [lq] and "correct_option" not in pub[0]
+    assert store.get_question_correct_answer(lq) == "a"
+    store.add_practice_attempt(lz, lq, "a", True)
+    assert store.get_latest_attempt(lq)["correct"] == 1
 
     print("store OK")

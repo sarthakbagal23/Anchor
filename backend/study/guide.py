@@ -24,6 +24,16 @@ RETRIEVE_K = 12
 # CED coverage pass uses. Below it we treat the topic as not in the sources.
 MIN_COVERAGE_SIMILARITY = 0.3
 
+# User-facing reason when a unit has zero objectives. Worded to cover both ways
+# this happens (an AP unit with no matching CED import, and a non-AP unit — for
+# which automatic extraction isn't built yet) so clients can show it verbatim
+# instead of a generic connectivity error.
+NO_OBJECTIVES_MSG = (
+    "This unit has no learning objectives yet. Automatic objective extraction "
+    "for non-AP classes isn't built yet — this works today only for AP units "
+    "with an imported CED."
+)
+
 
 def _similarity(distance: float) -> float:
     return max(0.0, min(1.0, 1.0 - distance))
@@ -117,16 +127,21 @@ class StudyGuideGenerator:
                     "empty section. Try regenerating the guide.")
         return {"title": title, "skill_code": skill, "body": body, "citations": cmap, "covered": True}
 
-    def _prepare(self, workspace_id: int) -> tuple[int | None, list, int]:
-        """Validate the workspace and return (guide_id, objectives, unit_id) or
-        raise ValueError with a friendly message if no unit/objectives exist."""
+    def _resolve(self, workspace_id: int) -> tuple[dict, int, list]:
+        """Return (workspace, unit_id, objectives), raising ValueError for a
+        missing workspace or a workspace with no unit."""
         ws = self.store.get_workspace(workspace_id)
         if not ws or not ws.get("unit_id"):
             raise ValueError("Workspace has no unit." if ws else "Workspace not found.")
         unit_id = ws["unit_id"]
-        objectives = self._objectives_for_workspace(workspace_id)
+        return ws, unit_id, self._objectives_for_workspace(workspace_id)
+
+    def _prepare(self, workspace_id: int) -> tuple[int | None, list, int]:
+        """Validate the workspace and return (guide_id, objectives, unit_id) or
+        raise ValueError with a friendly message if no unit/objectives exist."""
+        _, unit_id, objectives = self._resolve(workspace_id)
         if not objectives:
-            raise ValueError("No learning objectives for this workspace yet — add an AP source first.")
+            raise ValueError(NO_OBJECTIVES_MSG)
         guide_id = self.store.create_study_guide(workspace_id, unit_id)
         self.store.set_guide_objective_count(guide_id, len(objectives))
         return guide_id, objectives, unit_id
@@ -138,8 +153,23 @@ class StudyGuideGenerator:
         then one final (None, total, summary) event where summary is
         {guide, sections, uncovered} once every section is persisted. This lets a
         caller stream sections to the client one at a time instead of waiting for
-        the whole unit (24-26 LLM calls) to finish."""
-        guide_id, objectives, unit_id = self._prepare(workspace_id)
+        the whole unit (24-26 LLM calls) to finish.
+
+        A unit with zero objectives is a normal user-facing state, not a crash:
+        it yields a single terminal (None, 0, {guide: None, sections: [],
+        uncovered: 0, error}) so SSE clients can show the real reason instead of
+        misreading an abrupt stream end as a connectivity failure."""
+        _, unit_id, objectives = self._resolve(workspace_id)
+        if not objectives:
+            yield None, 0, {
+                "guide": None,
+                "sections": [],
+                "uncovered": 0,
+                "error": NO_OBJECTIVES_MSG,
+            }
+            return
+        guide_id = self.store.create_study_guide(workspace_id, unit_id)
+        self.store.set_guide_objective_count(guide_id, len(objectives))
         total = len(objectives)
         uncovered = 0
         for i, obj in enumerate(objectives, start=1):
@@ -161,8 +191,10 @@ class StudyGuideGenerator:
     def generate(self, workspace_id: int) -> dict | None:
         """Generate (and persist) a study guide for the workspace's unit.
 
-        Returns {guide, sections, uncovered}, or None if the workspace has no
-        unit/objectives. `uncovered` is the number of objectives whose best source
+        Returns {guide, sections, uncovered}, or a terminal {guide: None,
+        sections: [], uncovered: 0, error} payload when the unit has no
+        objectives, or None if the workspace is missing/has no unit.
+        `uncovered` is the number of objectives whose best source
         match fell below the coverage threshold."""
         try:
             gen = self.generate_stream(workspace_id)
@@ -263,5 +295,19 @@ if __name__ == "__main__":
     sec = gen._write_section(coverable, ws, unit_id)
     assert sec["covered"] is True and sec["body"].strip() != "", \
         "empty writer must fall back to a non-empty body"
+
+    # Empty unit: the stream must end with an explicit terminal payload carrying
+    # the real reason — not an abrupt end / exception the client misreads as a
+    # connectivity failure — and generate() must surface the same message.
+    ews, _, eunit = store.create_course_unit_workspace("Empty Unit")
+    assert store.list_unit_objectives(eunit) == []
+    events = list(gen.generate_stream(ews))
+    assert events == [(None, 0, {"guide": None, "sections": [], "uncovered": 0,
+                                 "error": NO_OBJECTIVES_MSG})], \
+        f"empty unit must yield one terminal payload, got {events}"
+    eres = gen.generate(ews)
+    assert eres is not None and eres.get("guide") is None \
+        and eres.get("error") == NO_OBJECTIVES_MSG, \
+        "generate() must surface the same explicit reason"
 
     print("guide OK")

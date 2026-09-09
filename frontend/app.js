@@ -462,6 +462,11 @@ $("study-generate").onclick = async () => {
     const data = JSON.parse(e.data);
     es.close();
     btn.disabled = false; btn.textContent = "Generate / Refresh";
+    if (data.error) {
+      studyMeta.textContent = "";
+      studyBody.innerHTML = `<p class="study-hint">${escapeHtml(data.error)}</p>`;
+      return;
+    }
     studyMeta.textContent = data.guide ? `Generated · ${data.guide.objective_count} objectives` : "";
     citationMap = {};
     (data.sections || []).forEach(s => Object.assign(citationMap, s.citations || {}));
@@ -473,10 +478,131 @@ $("study-generate").onclick = async () => {
   es.addEventListener("error", e => {
     es.close();
     btn.disabled = false; btn.textContent = "Generate / Refresh";
-    if (!done) {
-      studyBody.innerHTML = `<p class="study-hint">Failed to generate. Is the server's LLM reachable?</p>`;
-    }
+    if (done) return;
+    // A server-sent `event: error` carries the real reason in e.data; a genuine
+    // connection drop has no data. Prefer the server's message so a known state
+    // (e.g. missing workspace/unit) never reads as a connectivity failure.
+    let msg = "Failed to generate. Is the server's LLM reachable?";
+    try {
+      const d = e.data ? JSON.parse(e.data) : null;
+      if (d && d.error) msg = d.error;
+    } catch (err) {}
+    studyBody.innerHTML = `<p class="study-hint">${escapeHtml(msg)}</p>`;
   });
+};
+
+const practiceModal = $("practice-modal"), practiceBody = $("practice-body"), practiceScore = $("practice-score");
+let practiceQuizId = null;
+let practiceQuestions = [];
+let practiceAttempts = {};   // qid -> {attempted, correct}
+
+function openPractice() {
+  practiceModal.classList.remove("hidden");
+  loadPractice();
+}
+function closePractice() { practiceModal.classList.add("hidden"); }
+$("practice-close").onclick = closePractice;
+practiceModal.addEventListener("click", e => { if (e.target === practiceModal) closePractice(); });
+$("practice-btn").onclick = () => { if (!currentWS) return alert("Open a workspace first."); openPractice(); };
+
+function updatePracticeScore() {
+  const qs = practiceQuestions.filter(q => practiceAttempts[String(q.id)] && practiceAttempts[String(q.id)].attempted);
+  const right = qs.filter(q => practiceAttempts[String(q.id)].correct).length;
+  practiceScore.textContent = qs.length ? `${right} / ${qs.length} correct` : "";
+}
+
+async function choosePracticeOption(qid, optKey, el) {
+  const optEls = el.parentElement.querySelectorAll(".pq-opt");
+  optEls.forEach(o => o.disabled = true);
+  try {
+    const res = await api(`/api/workspaces/${currentWS}/practice-quiz/${practiceQuizId}/questions/${qid}/attempt`,
+      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ selected_option: optKey }) });
+    practiceAttempts[String(qid)] = { attempted: true, correct: res.correct, selected: optKey };
+    const correctEl = optEls[["a","b","c","d"].indexOf(res.correct_option)];
+    correctEl.classList.add("revealed-correct");
+    const chosenEl = optEls[["a","b","c","d"].indexOf(optKey)];
+    if (res.correct) chosenEl.classList.add("correct");
+    else chosenEl.classList.add("wrong");
+    const exp = el.closest(".pq").querySelector(".pq-explain");
+    exp.innerHTML = `${res.correct ? "✅ Correct." : "❌ Incorrect."} <span class="pq-correct-anno">Correct answer: ${escapeHtml(res.options[res.correct_option])}.</span> ${escapeHtml(res.explanation || "")}`;
+    exp.classList.add("show");
+    const meta = el.closest(".pq").querySelector(".pq-meta");
+    meta.textContent = res.correct ? "Answered correctly" : "Answered — review the explanation";
+    updatePracticeScore();
+  } catch (err) {
+    optEls.forEach(o => o.disabled = false);
+  }
+}
+
+function renderPractice() {
+  if (!practiceQuestions.length) {
+    practiceBody.innerHTML = `<p class="practice-hint">No practice quiz yet. Click <strong>Generate quiz</strong> to build questions from this workspace's learning objectives.</p>`;
+    practiceScore.textContent = "";
+    return;
+  }
+  practiceBody.innerHTML = practiceQuestions.map((q, i) => {
+    const att = practiceAttempts[String(q.id)];
+    return `
+    <div class="pq" data-qid="${q.id}">
+      <div class="pq-head"><span class="pq-num">Q${i + 1}</span><span class="pq-skill">${escapeHtml(q.skill_code || "obj")}</span></div>
+      <p class="pq-prompt">${escapeHtml(q.prompt)}</p>
+      <div class="pq-opts">
+        ${["a","b","c","d"].map(k => {
+          let cls = "pq-opt";
+          if (att && att.selected === k) cls += att.correct ? " correct" : " wrong";
+          return `<button class="${cls}" data-opt="${k}" ${att ? "disabled" : ""}>${escapeHtml(k.toUpperCase())}. ${escapeHtml(q.options[k])}</button>`;
+        }).join("")}
+      </div>
+      <div class="pq-explain${att ? " show" : ""}">${att ? (att.correct ? "✅ Correct." : "❌ Incorrect.") : ""}</div>
+      <div class="pq-meta">${att ? "Answered" : "Select an answer"}</div>
+    </div>`;
+  }).join("");
+  practiceBody.querySelectorAll(".pq").forEach(pq => {
+    const qid = parseInt(pq.dataset.qid, 10);
+    pq.querySelectorAll(".pq-opt").forEach(btn => {
+      btn.onclick = () => choosePracticeOption(qid, btn.dataset.opt, btn);
+    });
+  });
+  updatePracticeScore();
+}
+
+async function loadPractice() {
+  if (!currentWS) { practiceBody.innerHTML = `<p class="practice-hint">Open a workspace first.</p>`; return; }
+  practiceBody.innerHTML = `<div class="thinking"><span class="spinner"></span><span class="thinking-txt">Loading…</span></div>`;
+  try {
+    const data = await api(`/api/workspaces/${currentWS}/practice-quiz`);
+    if (!data.quiz) { practiceQuestions = []; practiceAttempts = {}; practiceQuizId = null; renderPractice(); return; }
+    practiceQuizId = data.quiz.id;
+    practiceQuestions = data.questions || [];
+    practiceAttempts = data.attempts || {};
+    renderPractice();
+  } catch (e) {
+    practiceBody.innerHTML = `<p class="practice-hint">Failed to load the practice quiz.</p>`;
+  }
+}
+
+$("practice-generate").onclick = async () => {
+  if (!currentWS) return alert("Open a workspace first.");
+  const btn = $("practice-generate");
+  btn.disabled = true; btn.textContent = "Generating…";
+  practiceBody.innerHTML = `<div class="thinking"><span class="spinner"></span><span class="thinking-txt">Writing practice questions…</span></div>`;
+  practiceScore.textContent = "";
+  try {
+    const data = await api(`/api/workspaces/${currentWS}/practice-quiz`, { method: "POST" });
+    if (!data.quiz) {
+      practiceBody.innerHTML = `<p class="practice-hint">${escapeHtml(data.error || "No learning objectives for this workspace yet.")}</p>`;
+    } else {
+      practiceQuizId = data.quiz.id;
+      practiceQuestions = data.questions || [];
+      practiceAttempts = {};
+      renderPractice();
+      if (data.skipped) practiceScore.textContent = `${data.skipped} topic(s) skipped (not in sources)`;
+    }
+  } catch (e) {
+    practiceBody.innerHTML = `<p class="practice-hint">Failed to generate. Is the server's LLM reachable?</p>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Generate quiz";
+  }
 };
 
 function renderStored(m){if(m.role==="assistant"&&m.content.includes("|||CITATIONS|||")){const [text,json]=m.content.split("|||CITATIONS|||");try{citationMap=JSON.parse(json)}catch{}return `<div class="msg assistant"><div class="msg-content">${formatStudyText(text, inlineFormat)}</div></div>`}return `<div class="msg ${m.role}"><div class="msg-content"><p>${escapeHtml(m.content)}</p></div></div>`}

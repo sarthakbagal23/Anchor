@@ -72,6 +72,10 @@ class ConfigIn(BaseModel):
     whisper: dict | None = None
 
 
+class PracticeAttemptIn(BaseModel):
+    selected_option: str
+
+
 @router.post("/workspaces")
 def create_workspace(body: WorkspaceIn):
     # A new workspace is backed by a real Course + Unit so sources live under the
@@ -134,7 +138,7 @@ def generate_study_guide(ws_id: int):
     gen = StudyGuideGenerator(_STORE, _CFG)
     result = gen.generate(ws_id)
     if not result:
-        return {"guide": None, "sections": [], "error": "No learning objectives for this workspace yet."}
+        return {"guide": None, "sections": [], "error": "This unit has no learning objectives yet. Automatic objective extraction for non-AP classes isn't built yet — this works today only for AP units with an imported CED."}
     return result
 
 
@@ -167,6 +171,83 @@ def stream_study_guide(ws_id: int):
             yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
 
     return StreamingResponse(gen(), media_type="text/event-stream")
+
+
+# --- practice quizzes (server-graded multiple choice) ---
+@router.get("/workspaces/{ws_id}/practice-quiz")
+def get_practice_quiz(ws_id: int):
+    """Return the latest persisted practice quiz with NO correct answers attached.
+    Each question carries only its options + prompt; the answer key lives
+    server-side and is revealed only via the attempt endpoint."""
+    from backend.practice.generator import PracticeQuizGenerator
+    if not _STORE.get_workspace(ws_id):
+        raise HTTPException(404, "workspace not found")
+    gen = PracticeQuizGenerator(_STORE, _CFG)
+    result = gen.fetch_public(ws_id)
+    if not result:
+        return {"quiz": None, "questions": []}
+    return result
+
+
+@router.post("/workspaces/{ws_id}/practice-quiz")
+def generate_practice_quiz(ws_id: int):
+    """Generate and persist a practice quiz for the workspace's unit."""
+    from backend.practice.generator import PracticeQuizGenerator
+    if not _STORE.get_workspace(ws_id):
+        raise HTTPException(404, "workspace not found")
+    gen = PracticeQuizGenerator(_STORE, _CFG)
+    result = gen.generate(ws_id)
+    if not result:
+        return {"quiz": None, "questions": [], "error": "This unit has no learning objectives yet. Automatic objective extraction for non-AP classes isn't built yet — this works today only for AP units with an imported CED."}
+    return result
+
+
+@router.get("/workspaces/{ws_id}/practice-quiz/stream")
+def stream_practice_quiz(ws_id: int):
+    """SSE variant of practice-quiz generation (GET so the frontend can use
+    EventSource). Streams each completed public question (no correct answer) as it
+    is ready, then a final 'done' with the full quiz.
+      meta    -> {"objectives": N}
+      q       -> {"index": i, "total": N, "question": {...}}
+      skipped -> {"n": M}
+      done    -> {"quiz": {...}, "questions": [...]}
+      error   -> {"error": "..."}
+    """
+    from backend.practice.generator import PracticeQuizGenerator
+
+    def gen():
+        try:
+            generator = PracticeQuizGenerator(_STORE, _CFG)
+            sgen = generator.generate_stream(ws_id)
+            for index, total, payload in sgen:
+                if index is None:
+                    yield f"event: done\ndata: {json.dumps(payload)}\n\n"
+                    return
+                if index == 1:
+                    yield f"event: meta\ndata: {json.dumps({'objectives': total})}\n\n"
+                yield f"event: q\ndata: {json.dumps({'index': index, 'total': total, 'question': payload})}\n\n"
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(gen(), media_type="text/event-stream")
+
+
+@router.post("/workspaces/{ws_id}/practice-quiz/{quiz_id}/questions/{qid}/attempt")
+def submit_practice_attempt(ws_id: int, quiz_id: int, qid: int, body: PracticeAttemptIn):
+    """Grade one submitted answer. The server is the only holder of the correct
+    answer, so it compares, persists the attempt, and returns the verdict plus the
+    grounded explanation in the same response (the client never saw the key)."""
+    from backend.practice.generator import PracticeQuizGenerator
+    quiz = _STORE.get_practice_quiz(quiz_id)
+    if not quiz or quiz["workspace_id"] != ws_id:
+        raise HTTPException(404, "practice quiz not found")
+    gen = PracticeQuizGenerator(_STORE, _CFG)
+    result = gen.grade(quiz_id, qid, body.selected_option)
+    if not result:
+        raise HTTPException(404, "question not found in this quiz")
+    return result
 
 
 @router.delete("/workspaces/{ws_id}")
@@ -582,6 +663,8 @@ if __name__ == "__main__":
         _llm.return_value = fake_llm
         rg = c.post(f"/api/workspaces/{ws_id}/study-guide")
     assert rg.status_code == 200 and rg.json()["guide"] is not None
+    assert "error" not in rg.json(), \
+        "local generate with objectives present must not report 'No learning objectives'"
     assert len(rg.json()["sections"]) == 2
     assert all(sec["body"] for sec in rg.json()["sections"])
     assert rg.json()["sections"][0]["skill_code"] == "VAR-1.A"  # CED skill code surfaced
@@ -620,5 +703,123 @@ if __name__ == "__main__":
     done_guide = by_event["done"][0]["guide"]
     assert done_guide and done_guide["id"] == by_event["done"][0]["sections"][0]["guide_id"]
     assert by_event["done"][0]["uncovered"] == rg.json()["uncovered"]
+
+    # empty unit over HTTP: the POST and the SSE stream must report the same
+    # explicit reason. Before the fix the stream ended abruptly (ValueError out
+    # of generate_stream) and the client showed a generic connectivity failure.
+    empty_ws = c.post("/api/workspaces", json={"title": "Empty Unit"}).json()["id"]
+    re_ = c.post(f"/api/workspaces/{empty_ws}/study-guide")
+    assert re_.status_code == 200 and re_.json()["guide"] is None and "error" in re_.json()
+    assert "extraction" in re_.json()["error"], "message must explain non-AP extraction isn't built"
+    rs = c.get(f"/api/workspaces/{empty_ws}/study-guide/stream")
+    assert rs.status_code == 200
+    sev, scur = [], None
+    for line in rs.text.splitlines():
+        if not line:
+            continue
+        if line.startswith("event:"):
+            scur = line[6:].strip()
+        elif line.startswith("data:"):
+            sev.append((scur, json.loads(line[5:].strip())))
+    snames = [n for n, _ in sev]
+    assert "meta" not in snames and "section" not in snames, "no progress events for an empty unit"
+    sdone = [d for n, d in sev if n == "done"]
+    assert len(sdone) == 1 and sdone[0].get("guide") is None and sdone[0].get("error"), \
+        f"stream must end with an explicit terminal error payload, got {sev}"
+    assert sdone[0]["error"] == re_.json()["error"], "stream and POST must agree on the reason"
+
+    # practice quiz: POST generates a server-graded MCQ quiz. The public payload
+    # must NOT include the correct answer; the attempt endpoint grades server-side
+    # and only then reveals the correct option + explanation.
+    #
+    # Run on an ISOLATED Store + app: the shared store's vec_chunks virtual table is
+    # dropped/recreated whenever a different embedder dimension is used, so mixing
+    # a second embedder into the shared store would wipe earlier chunk vectors.
+    import backend.practice.generator as _prac_mod
+
+    p_db = os.path.join(tempfile.mkdtemp(), "prac.db")
+    p_store = Store(p_db); p_store.init()
+    p_app = build_app(p_store, cfg)   # reassigns module singletons _STORE/_CFG
+    p_client = TestClient(p_app)
+    p_prac = p_store.add_course("AP Statistics Practice")
+    p_unit = p_store.add_unit(p_prac, "Unit 1: One-Variable Data")
+    p_ws = p_store.add_workspace("Practice Space", p_unit)
+
+    class _NormEmb:
+        """Deterministic normalized char-token embedder so the coverage gate sees a
+        real (near-1.0 for similar) cosine similarity — the hashing embedder yields
+        ~0 similarity, which would mark every objective uncovered and skip it."""
+        def __init__(self, dim: int = 64):
+            self.dim = dim
+
+        def embed(self, text: str) -> list[float]:
+            v = [0.0] * self.dim
+            for tok in text.lower().split():
+                v[sum(ord(c) for c in tok) % self.dim] += 1.0
+            n = (sum(x * x for x in v) ** 0.5) or 1.0
+            return [x / n for x in v]
+
+    p_src = p_store.add_source(p_ws, "pdf", "Practice Notes", None, None, unit_id=p_unit)
+    p_store.set_source_status(p_src, "ready")
+    # chunks embedded with the SAME _NormEmb used at query time, deliberately reusing
+    # the objective phrasing so coverage is clear and the objective is not skipped
+    for i, t in enumerate([
+        "summarize a quantitative variable using measures of center and spread such as the mean and the range",
+        "the median is the midpoint of an ordered data set",
+        "the range is the difference between the largest and the smallest value",
+    ]):
+        p_store.add_chunk(p_src, i, t, i * 60, i * 60 + 30, 25, _NormEmb().embed(t))
+    p_store.add_learning_objective(p_unit, "summarize a quantitative variable using measures of center and spread",
+                                   source_type="ced_import", ced_unit_number=1, ced_topic_number=6,
+                                   ced_skill_code="VAR-1.A")
+    prac_mcq = json.dumps({
+        "prompt": "Which statistic summarizes the center of a data set?",
+        "options": {"a": "the mean", "b": "the range", "c": "the color", "d": "the order"},
+        "correct": "a",
+        "explanation": "The mean is the arithmetic average. [1]",
+    })
+    prac_llm = MagicMock()
+    prac_llm.complete.return_value = prac_mcq
+
+    with patch("backend.grounding.pipeline.get_embedder") as _emb, \
+         patch.object(_prac_mod, "get_llm") as _llm:
+        _emb.return_value = _NormEmb()
+        _llm.return_value = prac_llm
+        rq = p_client.post(f"/api/workspaces/{p_ws}/practice-quiz")
+    assert rq.status_code == 200 and rq.json()["quiz"] is not None
+    assert "error" not in rq.json(), \
+        "local generate with objectives present must not report 'No learning objectives'"
+    assert len(rq.json()["questions"]) == 1
+    q = rq.json()["questions"][0]
+    assert "correct_option" not in q, "public question payload must never leak the answer"
+    assert q["prompt"] and set(q["options"].keys()) == {"a", "b", "c", "d"}
+    assert q["skill_code"] == "VAR-1.A"
+    quiz_id = rq.json()["quiz"]["id"]
+    qid = q["id"]
+
+    rgp = p_client.get(f"/api/workspaces/{p_ws}/practice-quiz")
+    assert rgp.status_code == 200 and rgp.json()["quiz"]["id"] == quiz_id
+    assert "correct_option" not in rgp.json()["questions"][0]
+    assert rgp.json()["attempts"][str(qid)]["attempted"] is False
+
+    # wrong answer -> verdict + revealed answer + explanation; server records it
+    rbad = p_client.post(f"/api/workspaces/{p_ws}/practice-quiz/{quiz_id}/questions/{qid}/attempt",
+                         json={"selected_option": "b"})
+    assert rbad.status_code == 200 and rbad.json()["correct"] is False
+    assert rbad.json()["correct_option"] == "a"
+    assert rbad.json()["explanation"]
+    rgp2 = p_client.get(f"/api/workspaces/{p_ws}/practice-quiz")
+    assert rgp2.json()["attempts"][str(qid)]["attempted"] is True and rgp2.json()["attempts"][str(qid)]["correct"] is False
+
+    # right answer -> correct True; attempt history records both
+    rok = p_client.post(f"/api/workspaces/{p_ws}/practice-quiz/{quiz_id}/questions/{qid}/attempt",
+                        json={"selected_option": "a"})
+    assert rok.status_code == 200 and rok.json()["correct"] is True
+    attempts = p_store.get_practice_attempts(quiz_id)
+    assert [a["correct"] for a in attempts] == [0, 1]
+    # cross-workspace / bad ids are rejected (no answer leak)
+    assert p_client.post(f"/api/workspaces/{p_ws}/practice-quiz/99999/questions/{qid}/attempt",
+                         json={"selected_option": "a"}).status_code == 404
+    assert p_client.get(f"/api/workspaces/{p_ws}/practice-quiz/stream").status_code == 200
 
     print("api OK")
