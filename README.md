@@ -7,6 +7,10 @@ how much time you have and whether you need a Smart Cram or Deep Study session.
 Every answer is grounded strictly in the transcript, with **time-coded citations
 that seek the video to the exact moment** the lecturer explained it.
 
+What works today: YouTube + PDF sources, grounded chat with citations, study
+guides per learning objective, and server-graded multiple-choice practice
+quizzes — all persisted per workspace and regenerable from the UI.
+
 Bring your own model — cloud (NVIDIA NIM, OpenRouter, OpenAI) or local (Ollama, LM
 Studio) — through one OpenAI-compatible config. Zero-config defaults handle
 embeddings, reranking, and transcription locally.
@@ -59,12 +63,21 @@ It starts with the student's real constraint—"I have 30 minutes"—and turns t
 class material into grounded explanations, high-value concepts, practice prompts,
 and direct links back to the lecture.
 
-## Scope (MVP)
+## Scope (v0.1.0)
 
-YouTube sources only. PDF/TXT/Markdown/DOCX ingestion, Audio Overview (podcast),
-PDF page rendering, and a Tauri desktop shell are designed-for and explicitly
-deferred (see `docs/superpowers/specs/2026-08-06-opennotebook-design.md` §13).
+YouTube + PDF sources, grounded chat, study guides, and practice quizzes.
+Audio Overview (podcast) and a Tauri desktop shell are designed-for and
+explicitly deferred (see `docs/superpowers/specs/2026-08-06-opennotebook-design.md` §13).
+
+## Known limitations
+
+- **Learning objectives only exist for AP units.** Objectives come from a CED
+  import that runs for AP courses; automatic objective extraction for non-AP
+  classes isn't built yet. On a unit with no objectives, study-guide and
+  practice-quiz generation report that explicitly instead of generating.
+- **Local mode only.** Multi-user cloud auth lives on the unmerged,
+  experimental `cloud-auth` branch and is not part of this release.
 
 ## License
 
-MIT.
+MIT — see [`LICENSE`](LICENSE).
