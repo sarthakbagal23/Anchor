@@ -1,83 +1,76 @@
-# Study Sessions (working name)
+# OpenNotebook
 
-An open-source, self-hostable study environment for students with an upcoming
-test. Create a **course**, name the **unit**, paste a YouTube lecture, then choose
-how much time you have and whether you need a Smart Cram or Deep Study session.
+**Study deeply. Cram intelligently.**
 
-Every answer is grounded strictly in the transcript, with **time-coded citations
-that seek the video to the exact moment** the lecturer explained it.
+OpenNotebook is an open-source, self-hostable study environment. Everything is
+organized as **Course → Unit → Sources → Study Session**: create a course, add a
+unit, drop in lectures and PDFs, and study inside a workspace where every answer
+links back to the material it came from.
 
-What works today: YouTube + PDF sources, grounded chat with citations, study
-guides per learning objective, and server-graded multiple-choice practice
-quizzes — all persisted per workspace and regenerable from the UI.
+Drop in a lecture or PDF, ask questions, and get answers grounded in your
+material with clickable citations back to the exact timestamp or page. On top of
+that foundation: per-objective study guides and server-graded multiple-choice
+practice quizzes, with per-question attempt history recorded as the raw material
+for weak-spot tracking (not built yet).
 
-Bring your own model — cloud (NVIDIA NIM, OpenRouter, OpenAI) or local (Ollama, LM
-Studio) — through one OpenAI-compatible config. Zero-config defaults handle
+Bring your own model — cloud (NVIDIA NIM, OpenRouter, OpenAI) or local (Ollama,
+LM Studio) — through one OpenAI-compatible config. Zero-config defaults handle
 embeddings, reranking, and transcription locally.
 
 ## Quick start
 
 ```bash
+git clone https://github.com/sarthakbagal23/OpenNotebook.git
+cd OpenNotebook
 python -m venv .venv
 .venv/Scripts/activate          # Windows; `source .venv/bin/activate` on macOS/Linux
-pip install -e ".[local]"       # installs fastapi + faster-whisper + sentence-transformers + yt-dlp
+pip install -e ".[local]"       # fastapi + faster-whisper + sentence-transformers + yt-dlp
 python main.py                  # opens http://127.0.0.1:8765 in your browser
 ```
 
 On first run, edit your config at `~/.opennotebook/config.yaml`: set an LLM
-`base_url`, `api_key`, and `model`. Everything else works with bundled defaults.
+`base_url`, `api_key`, and `model`. Everything else works with bundled defaults
+(see [`config.example.yaml`](config.example.yaml)).
 
-## Config
+## Current status (v0.1.0, early release)
 
-See [`config.example.yaml`](config.example.yaml). Key fields:
+Working: YouTube + PDF sources, grounded chat with citations, per-objective
+study guides, and server-graded practice quizzes — all persisted per workspace
+and regenerable from the UI.
 
-| Key | Default | Notes |
-|-----|---------|-------|
-| `llm.base_url` | — | Any OpenAI-compatible endpoint (NVIDIA NIM, OpenRouter, Ollama, LM Studio) |
-| `llm.model` | — | Model name for that endpoint |
-| `embeddings.provider` | `bundled` | `bundled` (CPU MiniLM) or `openai_compatible` |
-| `reranker.provider` | `bundled` | `bundled` (cross-encoder). Remote reranker is a v1.5 extension |
-| `whisper.provider` | `bundled` | `bundled` (faster-whisper) or `openai_compatible` |
-| `whisper.model` | `small` | `tiny|base|small|medium|large` |
-
-## How it works
-
-1. **Ingest**: `yt-dlp` pulls audio → `faster-whisper` transcribes with timestamps →
-   a timestamp-preserving chunker groups segments → chunks are embedded and stored
-   in SQLite + sqlite-vec.
-2. **Ground**: each question is embedded → sqlite-vec retrieves top-20 chunks → a
-   cross-encoder reranks → the top passages are fit to the model's context window
-   (so local 8k models still work) → a strict "answer only from passages + cite [#]"
-   prompt is streamed back.
-3. **Cite**: `[#]` markers are parsed and mapped to `(source, timestamp)`; the
-   frontend renders them as `⌜Title · mm:ss⌟` tokens. Click → the YouTube player
-   seeks to that moment.
-
-## Why
-
-This is not another general-purpose AI notebook. The core workflow is:
-
-**Course → Unit → Study Session → Practice → Review**
-
-It starts with the student's real constraint—"I have 30 minutes"—and turns their
-class material into grounded explanations, high-value concepts, practice prompts,
-and direct links back to the lecture.
-
-## Scope (v0.1.0)
-
-YouTube + PDF sources, grounded chat, study guides, and practice quizzes.
-Audio Overview (podcast) and a Tauri desktop shell are designed-for and
-explicitly deferred (see `docs/superpowers/specs/2026-08-06-opennotebook-design.md` §13).
-
-## Known limitations
+Known limitations:
 
 - **Learning objectives only exist for AP units.** Objectives come from a CED
   import that runs for AP courses; automatic objective extraction for non-AP
   classes isn't built yet. On a unit with no objectives, study-guide and
-  practice-quiz generation report that explicitly instead of generating.
+  practice-quiz generation say so explicitly instead of generating.
 - **Local mode only.** Multi-user cloud auth lives on the unmerged,
   experimental `cloud-auth` branch and is not part of this release.
 
+## How it works
+
+1. **Ingest**: `yt-dlp` pulls audio → `faster-whisper` transcribes with timestamps →
+   a timestamp-preserving chunker groups segments (PDFs are extracted per page) →
+   chunks are embedded and stored in SQLite + sqlite-vec.
+2. **Ground**: each question is embedded → sqlite-vec retrieves the top chunks → a
+   cross-encoder reranks → the top passages are fit to the model's context window
+   (so local 8k models still work) → a strict "answer only from passages + cite [#]"
+   prompt is streamed back.
+3. **Cite**: `[#]` markers are parsed and mapped to `(source, timestamp/page)`; the
+   frontend renders them as clickable tokens. Click → the YouTube player seeks to
+   that moment, or the PDF viewer jumps to that page.
+
+Study guides and practice quizzes reuse the same retrieval to ground
+per-objective sections and questions in your sources.
+
+## Architecture
+
+FastAPI serves the JSON API and the static frontend from one process
+(`main.py`). Persistence is SQLite + sqlite-vec (workspaces, sources, chunks,
+vectors, messages, objectives, guides, quizzes). All model access goes through
+one OpenAI-compatible client, so cloud and local models are interchangeable.
+
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT — see [`LICENSE`](LICENSE). Issues and PRs welcome; this is early software,
+so expect rough edges and report them.
