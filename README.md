@@ -7,6 +7,8 @@ organized as **Course → Unit → Sources → Study Session**: create a course,
 unit, drop in lectures and PDFs, and study inside a workspace where every answer
 links back to the material it came from.
 
+![OpenNotebook chat with time-coded citations](docs/screenshots/chat-citations.png)
+
 Drop in a lecture or PDF, ask questions, and get answers grounded in your
 material with clickable citations back to the exact timestamp or page. On top of
 that foundation: per-objective study guides and server-graded multiple-choice
@@ -31,6 +33,14 @@ python main.py                  # opens http://127.0.0.1:8765 in your browser
 On first run, edit your config at `~/.opennotebook/config.yaml`: set an LLM
 `base_url`, `api_key`, and `model`. Everything else works with bundled defaults
 (see [`config.example.yaml`](config.example.yaml)).
+
+## Screenshots
+
+| Chat with citations | Practice quiz |
+|---------------------|---------------|
+| ![Chat with citations](docs/screenshots/chat-citations.png) | ![Practice quiz](docs/screenshots/practice-quiz.png) |
+
+*Add your screenshots to `docs/screenshots/` and they'll appear above.*
 
 ## Current status (v0.1.0, early release)
 
