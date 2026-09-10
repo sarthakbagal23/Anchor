@@ -34,13 +34,11 @@ On first run, edit your config at `~/.opennotebook/config.yaml`: set an LLM
 `base_url`, `api_key`, and `model`. Everything else works with bundled defaults
 (see [`config.example.yaml`](config.example.yaml)).
 
-## Screenshots
+## Screenshot
 
-| Chat with citations | Practice quiz |
-|---------------------|---------------|
-| ![Chat with citations](docs/screenshots/chat-citations.png) | ![Practice quiz](docs/screenshots/practice-quiz.png) |
+![OpenNotebook study session](docs/screenshots/study-session.png)
 
-*Add your screenshots to `docs/screenshots/` and they'll appear above.*
+*Add your screenshot to `docs/screenshots/study-session.png` and it will appear above.*
 
 ## Current status (v0.1.0, early release)
 
