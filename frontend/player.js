@@ -13,6 +13,7 @@ const Player = {
     yt = new YT.Player("yt", { width:"100%", height:"215", videoId, playerVars:{start:Math.floor(atSec),autoplay:1,modestbranding:1,rel:0}, events:{onReady:e=>e.target.seekTo(atSec,true)} });
   },
   seek(sec) { if (yt && yt.seekTo) { yt.seekTo(sec,true); yt.playVideo(); } },
+  pause() { if (yt && yt.pauseVideo) { try { yt.pauseVideo(); } catch (e) {} } },
   currentTime() { return yt && yt.getCurrentTime ? yt.getCurrentTime() : 0; },
 };
 window.Player = Player;

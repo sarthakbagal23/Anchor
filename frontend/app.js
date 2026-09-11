@@ -170,6 +170,8 @@ async function openWS(id) {
   sources = ws.sources || [];
   renderSources(); renderMessages(ws.messages || []);
   await loadSidebar(); $("chat-input").focus();
+  // Switching workspaces leaves video context: never leak audio from a hidden player.
+  if (window.Player) window.Player.pause();
   if (window.PDFViewer) window.PDFViewer.showPlayer();
 }
 
@@ -299,10 +301,18 @@ async function streamAnswer(q, p, stopTimer, container) {
 
 // Compact citation presentation: timestamp + source number, with transcript on hover.
 function sourceNumberForCitationIndex(index){
+  // Stable per-workspace numbering (by workspace source order), NOT per-answer
+  // retrieval order. The old per-answer scheme labeled passage [1]'s source as
+  // "Source 1" every time — since models cite [1] most, nearly every citation in
+  // every answer read "Source 1" even when it was a different source.
   const ids=[];
-  for(const item of Object.values(citationMap)){const id=String(item.source_id ?? "");if(!ids.includes(id))ids.push(id);}
+  for(const s of sources){const id=String(s.id);if(!ids.includes(id))ids.push(id);}
   const sourceId=citationMap[Number(index)]?.source_id;
-  const ordinal=ids.indexOf(String(sourceId));
+  let ordinal=ids.indexOf(String(sourceId));
+  if(ordinal<0){
+    for(const item of Object.values(citationMap)){const id=String(item.source_id ?? "");if(!ids.includes(id))ids.push(id);}
+    ordinal=ids.indexOf(String(sourceId));
+  }
   return ordinal>=0?ordinal+1:index;
 }
 function renderTokens(text){return text.replace(/\[(\d+(?:\s*,\s*\d+)*)\]([.,;:!?])?/g,(_,nums,punct)=>`<span class="cite-wrap">${nums.split(",").map(n=>{const c=citationMap[+n.trim()];if(!c)return `<span class="cite-raw">[${n.trim()}]</span>`;const mmss=fmtTime(c.start_sec);const page=c.page_num?`p.${c.page_num}`:"";const label=mmss?`${mmss} · Source ${sourceNumberForCitationIndex(n)}`:`${page? page+" · ":""}Source ${sourceNumberForCitationIndex(n)}`;return `<span class="cite" data-id="${c.chunk_id}" data-sec="${c.start_sec||0}" data-source-id="${c.source_id||''}" aria-label="${escapeHtml(`Jump to ${label}`)}" title="${escapeHtml(c.text||'')}">${escapeHtml(label)}<span class="under"></span></span>`}).join(" ")}${punct||""}</span>`) }
@@ -316,24 +326,42 @@ function fmtTime(sec){if(sec==null)return "";sec=Math.floor(sec);return `${Math.
 document.addEventListener("click", e => {
   const t = e.target.closest(".cite");
   if (!t) return;
-  const sec = +t.dataset.sec;
+  // dataset.sec is always a numeric string ("0" for untimed chunks); treat only
+  // missing/malformed as absent — a chunk starting at second 0 is valid (the old
+  // `sec &&` check silently swallowed every 0:00 citation click).
+  const sec = (t.dataset.sec === undefined || t.dataset.sec === "") ? NaN : +t.dataset.sec;
+  const hasSec = !Number.isNaN(sec);
   t.classList.add("visited");
   document.querySelectorAll(".cite.playing").forEach(c => c.classList.remove("playing"));
   t.classList.add("playing");
   const c = Object.values(citationMap).find(x => String(x.chunk_id) === t.dataset.id);
   if (!c) return;
   const src = sources.find(s => s.id === c.source_id);
-  if (src?.youtube_id && sec && window.Player) { window.Player.seek(sec); window.Player.load(src.youtube_id, sec); }
+  // Every citation click visibly responds: always show the cited passage text,
+  // not just for PDFs (video citations previously rendered nothing anywhere).
+  const loc = (src?.type === "pdf" && c.page_num) ? `p.${c.page_num}` : (fmtTime(c.start_sec) || "source");
+  $("passage").innerHTML = `<div class="passage-card"><div class="passage-meta">${escapeHtml(c.source_title)} · ${loc}</div><div class="passage-text">${escapeHtml(c.text)}</div></div>`;
+  if (src?.youtube_id && hasSec && window.Player) {
+    // The PDF preview panel covers the player when visible — switch back first,
+    // or the video seeks invisibly behind it.
+    if (window.PDFViewer) window.PDFViewer.showPlayer();
+    window.Player.seek(sec); window.Player.load(src.youtube_id, sec);
+  }
   if (src?.type === "pdf" && window.PDFViewer) {
+    // Leaving video context: stop any playing audio first, then make sure the
+    // PDF panel is visible. The same-PDF path below used to jump/highlight in a
+    // hidden panel, so the second visit to a PDF silently did nothing.
+    if (window.Player) window.Player.pause();
+    window.PDFViewer.showPanel();
+    // y_top flows through the citation map (null when unknown); pass it through
+    // and let highlightAt decide between a pinpoint box and a full-page flash.
+    const hl = c.page_num ? { page: c.page_num, yTop: (c.y_top ?? null) } : null;
     if (window.__currentPDFSourceId__ !== src.id) {
-      PDFViewer.loadStream(src.id, (c.page_num && c.y_top != null) ? { page: c.page_num, yTop: c.y_top } : null)
-        .then(() => { window.__currentPDFSourceId__ = src.id; if (c.page_num) PDFViewer.jumpToPage(c.page_num); });
+      PDFViewer.loadStream(src.id, hl)
+        .then(() => { window.__currentPDFSourceId__ = src.id; if (c.page_num) { PDFViewer.jumpToPage(c.page_num); PDFViewer.highlightAt(src.id, c.page_num, c.y_top ?? null); } });
     } else {
-      if (c.page_num) PDFViewer.jumpToPage(c.page_num);
-      if (c.page_num && c.y_top != null) PDFViewer.highlightAt(src.id, c.page_num, c.y_top);
+      if (c.page_num) { PDFViewer.jumpToPage(c.page_num); PDFViewer.highlightAt(src.id, c.page_num, c.y_top ?? null); }
     }
-    const loc = c.page_num ? `p.${c.page_num}` : fmtTime(c.start_sec);
-    $("passage").innerHTML = `<div class="passage-card"><div class="passage-meta">${escapeHtml(c.source_title)} · ${loc}</div><div class="passage-text">${escapeHtml(c.text)}</div></div>`;
   }
 });
 function escapeHtml(s){return(s||"").replace(/[&<>\"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'\"':"&quot;"}[m]))}
@@ -607,3 +635,40 @@ $("practice-generate").onclick = async () => {
 
 function renderStored(m){if(m.role==="assistant"&&m.content.includes("|||CITATIONS|||")){const [text,json]=m.content.split("|||CITATIONS|||");try{citationMap=JSON.parse(json)}catch{}return `<div class="msg assistant"><div class="msg-content">${formatStudyText(text, inlineFormat)}</div></div>`}return `<div class="msg ${m.role}"><div class="msg-content"><p>${escapeHtml(m.content)}</p></div></div>`}
 loadSidebar();
+
+/* ===== Mouse Parallax Hero Glow ===== */
+const mouseGlow = document.createElement('div');
+mouseGlow.className = 'mouse-glow';
+mouseGlow.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%),rgba(13,217,245,.06),transparent 40%),radial-gradient(400px circle at var(--mx2,80%) var(--my2,80%),rgba(139,92,246,.05),transparent 40%);opacity:0;transition:opacity .3s';
+document.body.prepend(mouseGlow);
+document.addEventListener('mousemove', (e) => {
+  const x = e.clientX / window.innerWidth * 100;
+  const y = e.clientY / window.innerHeight * 100;
+  mouseGlow.style.setProperty('--mx', `${x}%`);
+  mouseGlow.style.setProperty('--my', `${y}%`);
+  mouseGlow.style.setProperty('--mx2', `${100-x}%`);
+  mouseGlow.style.setProperty('--my2', `${100-y}%`);
+  mouseGlow.classList.add('active');
+  clearTimeout(mouseGlow._timer);
+  mouseGlow._timer = setTimeout(() => mouseGlow.classList.remove('active'), 2000);
+});
+
+/* ===== Stagger Grid Reveal ===== */
+function staggerReveal(container, selector = '.stagger-item', delay = 80) {
+  const items = container.querySelectorAll(selector);
+  items.forEach((el, i) => {
+    el.style.animationDelay = `${i * delay}ms`;
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(12px)';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+        el.style.transition = 'opacity .5s cubic-bezier(.16,1,.3,1), transform .5s cubic-bezier(.16,1,.3,1)';
+      });
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => staggerReveal(document.body), 100);
+});

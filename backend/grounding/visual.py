@@ -36,8 +36,18 @@ VISION_SYSTEM = (
     "Rules: x,y is the top-left corner and w,h is the size, all as 0..1 fractions of the "
     "image. Only annotate a region you can actually see, keep labels short, and do not "
     "guess coordinates deeper than the visual truth. If nothing on the page is worth "
-    "pointing at, emit NO tags. You must not use markdown backticks around the tag."
+    "pointing at, emit NO tags. You must not use markdown backticks around the tag.\n"
+    "Draw on several different passages of the source evidence and cite each one you "
+    "use — an answer that leans on a single passage is incomplete when more evidence "
+    "is provided."
 )
+
+# How many grounded passages the vision model actually sees. Small vision models
+# follow citation instructions far better over short evidence, so this stays low
+# even though the text path uses the full context budget. The passages are
+# already interleaved across sources by the pipeline, so the top-K span them.
+VISION_EVIDENCE_K = 6
+
 
 ANNOT_TAG = re.compile(
     r"<annotate\s+page\s*=\s*[\"']?(\d+)[\"']?\s*"
@@ -95,6 +105,28 @@ class VisualPipeline:
 
         msgs, cmap = self.base.ground(query, workspace_id, chat_history or [])
         llm = get_llm(self.cfg)
+
+        # Shrink the evidence to what a small vision model can actually follow:
+        # keep the top interleaved passages (already spread across sources) and
+        # renumber them 1..M, so the map the client receives matches exactly what
+        # the model saw. Without this the model gets ~20 passages plus an image
+        # and answers from its own weights, citing nothing.
+        ordered = [cmap[k] for k in sorted(cmap.keys())][:VISION_EVIDENCE_K]
+        if ordered and len(ordered) < len(cmap):
+            temp_chunks = [{
+                "id": pc["chunk_id"], "source_id": pc["source_id"],
+                "text": pc["text"], "start_sec": pc.get("start_sec"),
+                "end_sec": pc.get("end_sec"), "page_num": pc.get("page_num"),
+            } for pc in ordered]
+            msgs = self.base._build_prompt(query, temp_chunks, chat_history or [])
+            cmap = dict(self.base._last_citation_map)
+        if isinstance(msgs[-1].get("content"), str):
+            # Trailing reminder: models obey instructions at the end of the
+            # prompt far more reliably than ones buried in the system message.
+            msgs[-1]["content"] += (
+                "\n\nCite the passages you rely on inline as [#], drawing on "
+                "several different passages — not just one."
+            )
 
         # Pick a PDF source from the cited passages (most relevant first = lowest passage number)
         # and grab a page to visualize.
@@ -159,10 +191,9 @@ class VisualPipeline:
         # always overlays boxes on the page image it actually displays (not a guessed page).
         for a in annotations:
             a["page"] = shown["page_num"]
-        # Ensure citation markers appear in the answer so frontend can render them.
-        # The visual model sees passage 1 (the shown page), so append [1] if we have citations.
-        if cmap and not any(f"[{i}]" in answer for i in range(1, len(cmap)+1)):
-            answer += "\n\n[1]"
+        # Never fabricate citation markers: if the model cited nothing, the answer is
+        # shown without citation tokens rather than a made-up "[1]" that would point
+        # at an arbitrary passage (usually the video intro at 0:00).
         return {"answer": answer, "citations": cmap,
                 "annotations": annotations, "page": shown}
 
@@ -179,4 +210,64 @@ if __name__ == "__main__":
         print("visual", p)
     assert len(parse_annotations('a <annotate page="1" x="0.1" y="0.2" w="0.3" h="0.1" label="x"/> b')) == 1
     assert len(parse_annotations('<annotate page="9" x="2" y="0" w="0" h="0"/>')) == 0, "out-of-range coords dropped"
+
+    # evidence trim: 10 grounded passages -> the vision model sees the top 6
+    # renumbered 1..6, and the returned map matches exactly what it saw (plus no
+    # phantom citations are ever injected into a citation-less answer).
+    import json as _json
+    from pathlib import Path as _Path
+    from unittest.mock import patch as _patch
+    from backend.config import load_config as _load_config
+    from backend.store import Store as _Store
+    _vdb = os.path.join(tempfile.mkdtemp(), "v.db")
+    _vstore = _Store(_vdb)
+    _vstore.init()
+    _vws = _vstore.add_workspace("Viz", None)
+    _vpdf = os.path.join(tempfile.mkdtemp(), "page.png")
+    open(_vpdf, "wb").write(b"\x89PNG\r\n\x1a\nfakepng")
+    _vsrc = _vstore.add_source(_vws, "pdf", "Notes", None, None)
+    _vstore.conn.execute("UPDATE sources SET file_path=? WHERE id=?", (_vpdf, _vsrc))
+    _vstore.conn.commit()
+    _vch = _vstore.add_chunk(_vsrc, 0, "some pdf text", None, None, 1, [0.1] * 8)
+    _big_cmap = {i: {"passage": i, "chunk_id": _vch, "source_title": "Notes",
+                     "source_id": _vsrc, "start_sec": None, "end_sec": None,
+                     "page_num": 1, "text": f"evidence piece {i}"} for i in range(1, 11)}
+
+    class _FakeBase:
+        """Duck-typed Pipeline: canned ground(), but the REAL _build_prompt so
+        renumbering is genuinely exercised (no embedder download needed)."""
+        def __init__(self, store):
+            self.store = store
+        def ground(self, *a, **k):
+            return ([{"role": "system", "content": "s"},
+                     {"role": "user", "content": "stub evidence"}],
+                    dict(_big_cmap))
+        def _build_prompt(self, query, kept, hist):
+            return Pipeline._build_prompt(self, query, kept, hist)
+
+    _vcfg = _load_config()
+    _vcfg.llm.vision_model = "test-vision"
+    _seen = {}
+    def _fake_vision(self, messages, page_image_b64=None, model=None, **params):
+        _seen["prompt"] = messages
+        return "trimmed answer citing several passages [1] and [2]"
+    with _patch("backend.ingestion.pdfrender.render_page", return_value=_Path(_vpdf)), \
+         _patch("backend.llm_client.LLMClient.vision", _fake_vision):
+        _out = VisualPipeline(_vstore, _vcfg, base=_FakeBase(_vstore)).answer("q", _vws, [])
+    assert set(_out["citations"].keys()) == {1, 2, 3, 4, 5, 6}, \
+        f"map must match the trimmed evidence, got {sorted(_out['citations'])}"
+    _prompt_text = " ".join(m["content"] for m in _seen["prompt"] if isinstance(m.get("content"), str))
+    assert "[6]" in _prompt_text and "[7]" not in _prompt_text, \
+        "model must see exactly passages 1..6"
+    assert "Cite the passages" in _prompt_text, "trailing citation reminder must be present"
+    assert "[1]" in _out["answer"] and "[7]" not in _out["answer"], \
+        "model-written citations survive; nothing phantom is added"
+
+    # citation-less vision answer: returned verbatim, no "[1]" injected.
+    def _quiet_vision(self, messages, page_image_b64=None, model=None, **params):
+        return "a generic answer with no citations at all."
+    with _patch("backend.ingestion.pdfrender.render_page", return_value=_Path(_vpdf)), \
+         _patch("backend.llm_client.LLMClient.vision", _quiet_vision):
+        _out2 = VisualPipeline(_vstore, _vcfg, base=_FakeBase(_vstore)).answer("q", _vws, [])
+    assert "[1]" not in _out2["answer"], "must never fabricate a citation marker"
     print("visual OK")

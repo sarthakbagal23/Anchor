@@ -490,6 +490,10 @@ async def chat(ws_id: int, body: dict):
             if acc:
                 _STORE.add_message(ws_id, "assistant", "".join(acc))
                 yield f"event: citations\ndata: {{}}\n\n"
+            if not acc:
+                # A completely empty stream must surface as an explicit error, never
+                # a silent blank bubble the user misreads as a hang.
+                yield f"event: error\ndata: {json.dumps({'error': 'The model returned an empty response. Try again.'})}\n\n"
         except Exception as e:
             err = str(e)
             yield f"event: error\ndata: {json.dumps({'error': err})}\n\n"
@@ -727,6 +731,19 @@ if __name__ == "__main__":
     assert len(sdone) == 1 and sdone[0].get("guide") is None and sdone[0].get("error"), \
         f"stream must end with an explicit terminal error payload, got {sev}"
     assert sdone[0]["error"] == re_.json()["error"], "stream and POST must agree on the reason"
+
+    # chat SSE contract: tokens stream, then a citations event persists the reply.
+    # A completely empty model stream must surface an explicit error event, never
+    # a silent blank bubble the user misreads as a hang.
+    with patch("backend.grounding.pipeline.Pipeline.stream_answer",
+               return_value=iter(["hello ", "world", '__CITATIONS__{"1": {"chunk_id": 1}}'])):
+        rchat = c.post(f"/api/workspaces/{ws_id}/chat", json={"message": "hi"})
+    assert rchat.status_code == 200 and "hello" in rchat.text and "citations" in rchat.text
+    assert "empty response" not in rchat.text
+    assert "world" in _STORE.list_messages(ws_id)[-1]["content"], "reply must be persisted"
+    with patch("backend.grounding.pipeline.Pipeline.stream_answer", return_value=iter([])):
+        rchat0 = c.post(f"/api/workspaces/{ws_id}/chat", json={"message": "hi"})
+    assert rchat0.status_code == 200 and "empty response" in rchat0.text
 
     # practice quiz: POST generates a server-graded MCQ quiz. The public payload
     # must NOT include the correct answer; the attempt endpoint grades server-side

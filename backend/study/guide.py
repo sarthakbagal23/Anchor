@@ -97,6 +97,7 @@ class StudyGuideGenerator:
                 "start_sec": c.get("start_sec"),
                 "end_sec": c.get("end_sec"),
                 "page_num": c.get("page_num"),
+                "y_top": c.get("y_top"),
                 "text": c["text"],
             })
         cmap = build_map(passage_chunks)

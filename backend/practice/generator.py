@@ -140,6 +140,7 @@ class PracticeQuizGenerator:
                 "start_sec": c.get("start_sec"),
                 "end_sec": c.get("end_sec"),
                 "page_num": c.get("page_num"),
+                "y_top": c.get("y_top"),
                 "text": c["text"],
             })
         return "\n\n".join(blocks), passage_chunks, top_similarity

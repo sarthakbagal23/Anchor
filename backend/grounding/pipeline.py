@@ -30,8 +30,33 @@ SYSTEM = (
     "Never pretend to have seen a visual. Keep explanations student-friendly and actionable. "
     "Format answers for studying: use a short descriptive heading when helpful, short paragraphs, "
     "bullets or numbered steps for sequences, bold for key terms, and backticks for code. "
-    "Keep citation numbers inline with the sentence they support; never put a citation on its own line."
+    "Keep citation numbers inline with the sentence they support; never put a citation on its own line. "
+    "Draw on several different passages across the supplied evidence and cite each one you use — "
+    "an answer that leans on a single passage is incomplete when more evidence is provided."
 )
+
+
+def _interleave_by_source(ranked: list[dict]) -> list[dict]:
+    """Round-robin chunks across sources, preserving within-source rank order.
+
+    Without this, a tight context budget fills up on whatever source dominates
+    the head of the ranked list, and the answer's citations can come from a
+    single source even when the workspace has several covering the topic."""
+    buckets: dict = {}
+    order: list = []
+    for c in ranked:
+        sid = c.get("source_id")
+        if sid not in buckets:
+            buckets[sid] = []
+            order.append(sid)
+        buckets[sid].append(c)
+    queues = [list(buckets[sid]) for sid in order]
+    out: list[dict] = []
+    while any(queues):
+        for q in queues:
+            if q:
+                out.append(q.pop(0))
+    return out
 
 
 class Pipeline:
@@ -54,7 +79,9 @@ class Pipeline:
             ranked = self.reranker.rerank(query, chunks)
         else:
             ranked = chunks
-        return ranked
+        # Spread citations across sources so one dominant source can't crowd out
+        # the rest before the context budget is spent.
+        return _interleave_by_source(ranked)
 
     def _fit_context(self, ranked: list[dict]) -> list[dict]:
         budget = self.max_context - RESERVE_TOKENS_FOR_ANSWER
@@ -88,6 +115,7 @@ class Pipeline:
                 "start_sec": c.get("start_sec"),
                 "end_sec": c.get("end_sec"),
                 "page_num": c.get("page_num"),
+                "y_top": c.get("y_top"),
                 "text": c["text"],
             })
         passages_block = "\n\n".join(blocks)
@@ -160,6 +188,7 @@ if __name__ == "__main__":
     pipe.reranker = None
     msgs, cmap = pipe.ground("what is the definition of a limit", ws)
     assert len(cmap) >= 1, f"expected at least 1 citation, got {len(cmap)}"
+    assert "y_top" in cmap[1], "citation map must carry y_top so the PDF viewer can highlight"
     assert "Beyond this source:" in msgs[0]["content"]
     assert "SOURCE EVIDENCE FROM THE STUDY MATERIAL" in msgs[-1]["content"]
 
@@ -169,4 +198,22 @@ if __name__ == "__main__":
     pipe2.max_context = 512
     msgs2, cmap2 = pipe2.ground("what is the definition of a limit", ws)
     assert len(cmap2) <= len(cmap), "smaller context must fit no more passages"
+
+    # source diversity: a ranked list dominated by one source must interleave so
+    # a tight budget still reaches the other sources (regression test for
+    # single-source citation maps on multi-source workspaces).
+    ranked = [
+        {"id": 1, "source_id": 11, "text": "a1"},
+        {"id": 2, "source_id": 11, "text": "a2"},
+        {"id": 3, "source_id": 11, "text": "a3"},
+        {"id": 4, "source_id": 12, "text": "b1"},
+        {"id": 5, "source_id": 13, "text": "c1"},
+        {"id": 6, "source_id": 12, "text": "b2"},
+    ]
+    assert [c["id"] for c in _interleave_by_source(ranked)] == [1, 4, 5, 2, 6, 3], \
+        "round-robin must alternate sources while preserving within-source order"
+    assert _interleave_by_source([]) == []
+    single = [{"id": 1, "source_id": 11}, {"id": 2, "source_id": 11}]
+    assert [c["id"] for c in _interleave_by_source(single)] == [1, 2], \
+        "single-source input must keep its order"
     print("pipeline OK")

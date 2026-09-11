@@ -69,13 +69,21 @@
       // Always render at least 2.5x for crisp text; allow up to 3.5x if panel is wide enough
       const scale = Math.max(2.5, Math.min(fitScale, 3.5));
       const vp = page.getViewport({ scale });
+      // Each page gets its own positioned wrapper so highlight overlays anchor to
+      // THIS page. (Appending the box to the scroll container instead put it near
+      // the top of the document, and its scrollIntoView then yanked the view back
+      // to page one, undoing the jump.)
+      const wrap = document.createElement("div");
+      wrap.className = "pdf-page";
+      wrap.dataset.page = n;
       const canvas = document.createElement("canvas");
       canvas.width = vp.width; canvas.height = vp.height;
       canvas.dataset.page = n;
       canvas.style.width = (container.clientWidth - 4) + "px";
       const ctx = canvas.getContext("2d");
       await page.render({ canvasContext: ctx, viewport: vp }).promise;
-      container.appendChild(canvas);
+      wrap.appendChild(canvas);
+      container.appendChild(wrap);
       viewer.canvases[n] = canvas;
     }
   }
@@ -86,8 +94,12 @@
     const c = viewer.canvases[n] || viewer.canvases[Math.min(n, viewer.pageCount)];
     if (!c) return;
     pageInd().textContent = `${n} of ${viewer.pageCount}`;
-    const top = c.offsetTop - scroll().getBoundingClientRect().top;
-    scroll().scrollTo({ top, behavior: "smooth" });
+    // #pdf-viewer is the scrollable element (#pdf-scroll is a plain container
+    // with no overflow rules, so scrolling it is a no-op). Same-frame math on
+    // viewport-relative rects.
+    const sc = pdfViewer();
+    const top = sc.scrollTop + c.getBoundingClientRect().top - sc.getBoundingClientRect().top;
+    sc.scrollTo({ top, behavior: "smooth" });
     c.classList.remove("page-flash"); void c.offsetWidth; c.classList.add("page-flash");
   }
 
@@ -124,6 +136,7 @@
   viewer.jumpToPage = jumpToPage;
   viewer.showAnnotatedPage = showAnnotatedPage;
   viewer.showPlayer = showPlayer;
+  viewer.showPanel = showPanel;
   viewer.highlightAt = highlightAt;
 
   document.getElementById("pdf-back").onclick = () => {
@@ -138,7 +151,9 @@
 
   window.PDFViewer = viewer;
 
-  // Draw a highlight box on the page canvas at y_top (0..1 fraction from top)
+  // Draw a highlight box on the page canvas at y_top (0..1 fraction from top).
+  // yTop == null (unknown position, e.g. older citation maps) flashes the whole
+  // page instead of showing nothing — a click must always visibly respond.
   function highlightAt(sourceId, pageNum, yTop) {
     if (!viewer.pdfDoc || viewer.currentSourceId !== sourceId) return;
     const canvas = viewer.canvases[pageNum];
@@ -150,8 +165,9 @@
     const rect = canvas.getBoundingClientRect();
     const highlight = document.createElement("div");
     highlight.className = "pdf-highlight";
-    const boxHeight = Math.max(28, rect.height * 0.07); // ~7% of page height
-    const top = rect.height * Math.max(0, Math.min(1, yTop));
+    const fullPage = (yTop == null);
+    const boxHeight = fullPage ? rect.height : Math.max(28, rect.height * 0.07); // ~7% of page height
+    const top = fullPage ? 0 : rect.height * Math.max(0, Math.min(1, yTop));
     highlight.style.cssText = `
       position: absolute;
       left: 2%; right: 2%;
