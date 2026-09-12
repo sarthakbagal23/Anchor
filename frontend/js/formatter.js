@@ -1,7 +1,12 @@
-// Small, dependency-free formatter for grounded study answers.
+// formatter.js — EASY to extend (it's a small, self-contained parser). Turns
+// heading/bullet/numbered-list markdown into block-level HTML. Inline styling
+// (bold, italic, code, citations) is deliberately NOT this file's job — that
+// lives in richText.js, which this file calls back into via the `inline`
+// argument, so citation-aware formatting and plain-text formatting share one
+// block parser.
 (function () {
   function escapeHtml(value) {
-    return String(value || "").replace(/[&<>\"]/g, ch => ({"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;"}[ch]));
+    return String(value || "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
   }
 
   function formatStudyText(text, inline) {
