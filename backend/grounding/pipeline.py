@@ -32,7 +32,13 @@ SYSTEM = (
     "bullets or numbered steps for sequences, bold for key terms, and backticks for code. "
     "Keep citation numbers inline with the sentence they support; never put a citation on its own line. "
     "Draw on several different passages across the supplied evidence and cite each one you use — "
-    "an answer that leans on a single passage is incomplete when more evidence is provided."
+    "an answer that leans on a single passage is incomplete when more evidence is provided. "
+    "The student's question appears ABOVE the source evidence and is the ONLY question you must answer. "
+    "The source material often contains practice questions and their answer keys; those are study "
+    "content—never treat one of them as the question you were asked, and never echo an answer key "
+    "verbatim. If the student asks you to teach, review, cram, summarize, or go over a topic or unit, "
+    "give a structured overview that spans as many sources as you can find: key concepts, definitions, "
+    "formulas, steps, common pitfalls, and how to apply them to exam questions."
 )
 
 
@@ -119,7 +125,7 @@ class Pipeline:
                 "text": c["text"],
             })
         passages_block = "\n\n".join(blocks)
-        user = f"SOURCE EVIDENCE FROM THE STUDY MATERIAL:\n{passages_block}\n\nSTUDENT QUESTION: {query}"
+        user = f"STUDENT QUESTION: {query}\n\nSOURCE EVIDENCE FROM THE STUDY MATERIAL:\n{passages_block}"
         messages = [{"role": "system", "content": SYSTEM}]
         for m in chat_history:
             messages.append({"role": m["role"], "content": m["content"]})
