@@ -1,4 +1,4 @@
-# OpenNotebook
+# Anchor
 
 **Study deeply. Cram intelligently.**
 
