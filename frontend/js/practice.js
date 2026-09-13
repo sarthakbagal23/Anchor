@@ -12,6 +12,7 @@
   let quizId = null;
   let questions = [];
   let attempts = {}; // question id (string) -> { attempted, correct, selected }
+  let weakSpots = null; // { overall, objectives } from getWeakSpots, or null
 
   function thinking(label) {
     return `<div class="thinking"><span class="spinner"></span><span>${escapeHtml(label)}</span></div>`;
@@ -21,6 +22,39 @@
     const answered = questions.filter((q) => attempts[String(q.id)] && attempts[String(q.id)].attempted);
     const right = answered.filter((q) => attempts[String(q.id)].correct).length;
     $("practice-score").textContent = answered.length ? `${right} / ${answered.length} correct` : "";
+  }
+
+  function weakSpotsHtml() {
+    if (!weakSpots || !weakSpots.objectives || !weakSpots.objectives.length) return "";
+    const rows = weakSpots.objectives.map((o) => {
+      const pct = o.accuracy == null ? "—" : `${Math.round(o.accuracy * 100)}%`;
+      const cls = o.accuracy != null && o.accuracy < 1 ? "weak-row--missed" : "weak-row--clean";
+      return `<li class="weak-row ${cls}"><span class="weak-acc">${pct}</span>`
+        + `<span class="weak-stmt">${escapeHtml(o.statement || "Other")}</span>`
+        + `<span class="weak-count">${o.correct}/${o.attempted}</span></li>`;
+    }).join("");
+    return `<section class="weak-spots" id="weak-spots" aria-label="Weak spots">`
+      + `<header class="question-head"><span class="q-num">Weak spots</span>`
+      + `<span class="skill-code">worst first</span></header>`
+      + `<ul>${rows}</ul></section>`;
+  }
+
+  async function refreshWeakSpots() {
+    // Best-effort: a missing/failed weak-spots read must never break the quiz UI.
+    try {
+      weakSpots = await Api.getWeakSpots(AppState.workspaceId);
+    } catch {
+      weakSpots = null;
+    }
+    const body = $("practice-body");
+    const old = $("weak-spots");
+    const html = weakSpotsHtml();
+    if (old) {
+      if (html) old.outerHTML = html;
+      else old.remove();
+    } else if (html && questions.length) {
+      body.insertAdjacentHTML("afterbegin", html);
+    }
   }
 
   function questionHtml(q, displayIndex) {
@@ -57,7 +91,7 @@
       $("practice-score").textContent = "";
       return;
     }
-    body.innerHTML = questions.map((q, i) => questionHtml(q, i)).join("");
+    body.innerHTML = weakSpotsHtml() + questions.map((q, i) => questionHtml(q, i)).join("");
     body.querySelectorAll(".question").forEach((card) => {
       const qid = Number(card.dataset.qid);
       const question = questions.find((q) => q.id === qid);
@@ -80,6 +114,7 @@
       exp.classList.add("show");
       exp.innerHTML = explanationHtml(result);
       updateScore();
+      refreshWeakSpots();
     } catch {
       buttons.forEach((b) => { b.disabled = false; });
     }
@@ -94,7 +129,9 @@
       quizId = data.quiz ? data.quiz.id : null;
       questions = data.questions || [];
       attempts = data.attempts || {};
+      weakSpots = null;
       renderAll();
+      if (quizId) refreshWeakSpots();
     } catch {
       body.innerHTML = `<p class="hint">Couldn't load the practice quiz.</p>`;
     }
@@ -145,6 +182,7 @@
       quizId = data.quiz ? data.quiz.id : null;
       questions = data.questions || drafted.filter(Boolean);
       attempts = {};
+      weakSpots = null;
       if (data.skipped) $("practice-score").textContent = `${data.skipped} topic(s) skipped (not in sources)`;
     });
 

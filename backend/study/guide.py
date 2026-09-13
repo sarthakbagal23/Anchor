@@ -24,14 +24,14 @@ RETRIEVE_K = 12
 # CED coverage pass uses. Below it we treat the topic as not in the sources.
 MIN_COVERAGE_SIMILARITY = 0.3
 
-# User-facing reason when a unit has zero objectives. Worded to cover both ways
-# this happens (an AP unit with no matching CED import, and a non-AP unit — for
-# which automatic extraction isn't built yet) so clients can show it verbatim
-# instead of a generic connectivity error.
+# User-facing reason when a unit has zero objectives. Extraction now runs
+# automatically when a source finishes indexing, so this only happens when the
+# unit has no ready sources yet (or extraction found nothing) — clients can
+# show it verbatim instead of a generic connectivity error.
 NO_OBJECTIVES_MSG = (
-    "This unit has no learning objectives yet. Automatic objective extraction "
-    "for non-AP classes isn't built yet — this works today only for AP units "
-    "with an imported CED."
+    "This unit has no learning objectives yet. Objectives are created "
+    "automatically when a source finishes indexing — add a source, wait for "
+    "it to be ready, then try again."
 )
 
 

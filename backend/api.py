@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from backend.config import AppConfig, load_config, save_config, data_dir
 from backend.store import Store
 from backend.grounding.pipeline import Pipeline
+from backend.study.guide import NO_OBJECTIVES_MSG
 from backend.ingestion.ingest import ingest_url
 from backend.ingestion.document import SUPPORTED, ingest_pdf
 from backend.ingestion import pdfrender
@@ -35,9 +36,24 @@ def _run_ced_after_ingest(source_id: int, status: str) -> dict:
     return ced.apply_ced_to_source(_STORE, get_embedder(_CFG), source_id)
 
 
+def _run_objectives_after_ingest(source_id: int, status: str) -> dict:
+    """Post-ingest objectives hook: CED import for AP CED courses, AI
+    extraction for everything else. Runs on the same background thread as
+    ingest so the DB writes are not interleaved. Never raises — a failed
+    objectives pass must not fail an otherwise good ingest."""
+    try:
+        ced_result = _run_ced_after_ingest(source_id, status)
+        if ced_result.get("detected"):
+            return ced_result
+        from backend.objectives import extract
+        return extract.extract_objectives_for_source(_STORE, _CFG, source_id)
+    except Exception as e:
+        return {"source_id": source_id, "detected": False, "reason": f"objectives hook failed: {e}"}
+
+
 def _wrap_ingest(source_id: int, run: callable) -> dict:
-    """Run `run` (a zero-arg ingest callable), then apply the CED path if the
-    source finished ingesting as an AP CED course. Called on a background thread."""
+    """Run `run` (a zero-arg ingest callable), then run the objectives hook
+    (CED import for AP courses, AI extraction otherwise). Called on a background thread."""
     status = "queued"
     try:
         run()
@@ -46,7 +62,7 @@ def _wrap_ingest(source_id: int, run: callable) -> dict:
         return
     src = _STORE.get_source(source_id)
     status = src["status"] if src else "failed"
-    return _run_ced_after_ingest(source_id, status)
+    return _run_objectives_after_ingest(source_id, status)
 
 
 class WorkspaceIn(BaseModel):
@@ -138,7 +154,7 @@ def generate_study_guide(ws_id: int):
     gen = StudyGuideGenerator(_STORE, _CFG)
     result = gen.generate(ws_id)
     if not result:
-        return {"guide": None, "sections": [], "error": "This unit has no learning objectives yet. Automatic objective extraction for non-AP classes isn't built yet — this works today only for AP units with an imported CED."}
+        return {"guide": None, "sections": [], "error": NO_OBJECTIVES_MSG}
     return result
 
 
@@ -198,7 +214,7 @@ def generate_practice_quiz(ws_id: int):
     gen = PracticeQuizGenerator(_STORE, _CFG)
     result = gen.generate(ws_id)
     if not result:
-        return {"quiz": None, "questions": [], "error": "This unit has no learning objectives yet. Automatic objective extraction for non-AP classes isn't built yet — this works today only for AP units with an imported CED."}
+        return {"quiz": None, "questions": [], "error": NO_OBJECTIVES_MSG}
     return result
 
 
@@ -248,6 +264,17 @@ def submit_practice_attempt(ws_id: int, quiz_id: int, qid: int, body: PracticeAt
     if not result:
         raise HTTPException(404, "question not found in this quiz")
     return result
+
+
+@router.get("/workspaces/{ws_id}/weak-spots")
+def weak_spots(ws_id: int):
+    """Per-objective accuracy from the latest practice quiz (worst first).
+    Pure read over persisted attempts — the payoff for the practice_attempts
+    table the grader has been filling all along."""
+    from backend.practice.generator import PracticeQuizGenerator
+    if not _STORE.get_workspace(ws_id):
+        raise HTTPException(404, "workspace not found")
+    return PracticeQuizGenerator(_STORE, _CFG).weak_spots(ws_id)
 
 
 @router.delete("/workspaces/{ws_id}")
@@ -714,7 +741,7 @@ if __name__ == "__main__":
     empty_ws = c.post("/api/workspaces", json={"title": "Empty Unit"}).json()["id"]
     re_ = c.post(f"/api/workspaces/{empty_ws}/study-guide")
     assert re_.status_code == 200 and re_.json()["guide"] is None and "error" in re_.json()
-    assert "extraction" in re_.json()["error"], "message must explain non-AP extraction isn't built"
+    assert "automatically" in re_.json()["error"], "message must tell the user objectives come from indexing"
     rs = c.get(f"/api/workspaces/{empty_ws}/study-guide/stream")
     assert rs.status_code == 200
     sev, scur = [], None

@@ -22,4 +22,4 @@ local = [
 
 [tool.setuptools]
 py-modules = ["main"]
-packages = ["backend", "backend.grounding", "backend.ingestion"]
+packages = ["backend", "backend.grounding", "backend.ingestion", "backend.objectives", "backend.practice", "backend.study"]

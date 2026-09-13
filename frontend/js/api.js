@@ -75,6 +75,7 @@
     practiceStreamUrl: (wsId) => `/api/workspaces/${wsId}/practice-quiz/stream`,
     submitAttempt: (wsId, quizId, questionId, selectedOption) =>
       post(`/api/workspaces/${wsId}/practice-quiz/${quizId}/questions/${questionId}/attempt`, { selected_option: selectedOption }),
+    getWeakSpots: (wsId) => get(`/api/workspaces/${wsId}/weak-spots`),
 
     // config (fast/deep model toggle)
     getConfig: () => get("/api/config"),

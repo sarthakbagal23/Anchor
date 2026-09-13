@@ -21,6 +21,7 @@ from backend.grounding.citations import build_map
 from backend.grounding.pipeline import Pipeline, _fmt_ts
 from backend.llm_client import get_llm
 from backend.store import Store
+from backend.study.guide import NO_OBJECTIVES_MSG
 
 # How many chunks we ground each objective against (fits the context budget).
 RETRIEVE_K = 8
@@ -183,7 +184,7 @@ class PracticeQuizGenerator:
         unit_id = ws["unit_id"]
         objectives = self._objectives_for_workspace(workspace_id)
         if not objectives:
-            raise ValueError("This unit has no learning objectives yet. Automatic objective extraction for non-AP classes isn't built yet — this works today only for AP units with an imported CED.")
+            raise ValueError(NO_OBJECTIVES_MSG)
         quiz_id = self.store.create_practice_quiz(workspace_id, unit_id)
         return quiz_id, objectives, unit_id
 
@@ -266,6 +267,61 @@ class PracticeQuizGenerator:
             "prompt": q["prompt"],
             "options": q["options"],
             "question_id": question_id,
+        }
+
+    def weak_spots(self, workspace_id: int) -> dict:
+        """Aggregate the latest quiz's attempts by learning objective, worst first.
+
+        Each question counts once, using its LATEST attempt (re-tries overwrite
+        earlier ones). Questions never attempted count for nothing — neither for
+        nor against their objective. Objectives with no attempted questions are
+        omitted (the practice modal already shows per-question attempt state).
+        Pure read: safe to call after every attempt without side effects.
+        """
+        empty = {
+            "quiz_id": None,
+            "overall": {"attempted": 0, "correct": 0, "accuracy": None},
+            "objectives": [],
+        }
+        quiz = self.store.get_latest_practice_quiz(workspace_id)
+        if not quiz:
+            return empty
+        questions = self.store.get_practice_questions(quiz["id"], include_answer=False)
+        statements = {
+            o["id"]: o["statement"]
+            for o in self.store.list_unit_objectives(quiz["unit_id"] or -1)
+        }
+        by_obj: dict = {}
+        for q in questions:
+            a = self.store.get_latest_attempt(q["id"])
+            if not a:
+                continue
+            oid = q.get("objective_id")
+            entry = by_obj.setdefault(oid, {"attempted": 0, "correct": 0})
+            entry["attempted"] += 1
+            entry["correct"] += 1 if a.get("correct") else 0
+        rows = []
+        for oid, entry in by_obj.items():
+            att, cor = entry["attempted"], entry["correct"]
+            rows.append({
+                "objective_id": oid,
+                "statement": statements.get(oid),
+                "attempted": att,
+                "correct": cor,
+                "accuracy": (cor / att) if att else None,
+            })
+        rows.sort(key=lambda r: (r["accuracy"] if r["accuracy"] is not None else 2.0,
+                                 -r["attempted"]))
+        att_all = sum(r["attempted"] for r in rows)
+        cor_all = sum(r["correct"] for r in rows)
+        return {
+            "quiz_id": quiz["id"],
+            "overall": {
+                "attempted": att_all,
+                "correct": cor_all,
+                "accuracy": (cor_all / att_all) if att_all else None,
+            },
+            "objectives": rows,
         }
 
 
