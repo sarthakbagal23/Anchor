@@ -10,7 +10,8 @@ def retrieve(query: str, workspace_id: int, store: Store, embedder: Embedder, k:
 
 
 if __name__ == "__main__":
-    import tempfile, os
+    import tempfile
+    import os
     # embedder override: install the hashing fallback so no heavy deps are needed for this check.
     os.environ["OPENNOTEBOOK_CONFIG_DIR"] = tempfile.mkdtemp()
 

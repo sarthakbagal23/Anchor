@@ -17,7 +17,6 @@ from __future__ import annotations
 import json
 
 from backend.config import AppConfig
-from backend.grounding.citations import build_map
 from backend.grounding.pipeline import Pipeline, _fmt_ts
 from backend.llm_client import get_llm
 from backend.store import Store
@@ -326,7 +325,9 @@ class PracticeQuizGenerator:
 
 
 if __name__ == "__main__":
-    import os, tempfile, math
+    import os
+    import tempfile
+    import math
     from unittest.mock import MagicMock
 
     from backend.config import load_config, Section

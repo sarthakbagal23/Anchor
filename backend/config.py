@@ -61,9 +61,51 @@ class AppConfig:
     llm: LLMSection = field(default_factory=LLMSection)
     data_dir: str | None = None  # where uploaded PDFs + rendered page images are stored
     embeddings: Section = field(default_factory=Section)
-    embeddings: Section = field(default_factory=Section)
     reranker: Section = field(default_factory=Section)
     whisper: Section = field(default_factory=lambda: Section(model="small"))
+
+
+REDACTED = "***"
+_SECRET_KEYS = frozenset({"api_key"})
+
+# Provider names we know how to drive; anything else is a config typo worth
+# failing loudly on at startup instead of degrading mysteriously at runtime.
+_KNOWN_PROVIDERS: dict[str, frozenset[str]] = {
+    "embeddings": frozenset({"bundled", "openai_compatible"}),
+    "reranker": frozenset({"bundled"}),
+    "whisper": frozenset({"bundled"}),
+}
+
+
+def redact_secrets(obj: Any) -> Any:
+    """Return a copy of an asdict()-shaped config with every set secret
+    replaced by REDACTED. The live secret never leaves the server process;
+    clients (including our own settings UI) only ever see the marker."""
+    if isinstance(obj, dict):
+        return {
+            k: (REDACTED if k in _SECRET_KEYS and v else redact_secrets(v))
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [redact_secrets(v) for v in obj]
+    return obj
+
+
+def strip_redacted(obj: Any) -> Any:
+    """Inverse for inbound PATCH payloads: drop secret fields still carrying
+    the REDACTED marker so a settings form that echoes get_config output can
+    never persist "***" over the real key. A deliberately cleared (empty)
+    secret is also dropped — clearing a key is done by editing the file."""
+    if isinstance(obj, dict):
+        out = {}
+        for k, v in obj.items():
+            if k in _SECRET_KEYS and (v == REDACTED or not v):
+                continue
+            out[k] = strip_redacted(v)
+        return out
+    if isinstance(obj, list):
+        return [strip_redacted(v) for v in obj]
+    return obj
 
 
 def _deep_merge(base: dict, over: dict) -> dict:
@@ -77,18 +119,42 @@ def _deep_merge(base: dict, over: dict) -> dict:
 
 
 def _coerce(raw: dict) -> AppConfig:
-    llm = LLMSection(**raw.get("llm", {}))
-    emb = Section(**raw.get("embeddings", {}))
-    rnk = Section(**raw.get("reranker", {}))
-    wh = Section(**raw.get("whisper", {}))
-    return AppConfig(llm=llm, embeddings=emb, reranker=rnk, whisper=wh)
+    def section(cls, data: Any, name: str):
+        data = data or {}
+        if not isinstance(data, dict):
+            raise TypeError(f"config section {name!r} must be a mapping, got {type(data).__name__}")
+        # A typo'd key (baseurl:) must never prevent boot: ignore unknown keys
+        # with a loud stderr warning so the typo is visible but harmless.
+        known = {f.name for f in cls.__dataclass_fields__.values()}
+        unknown = sorted(k for k in data if k not in known)
+        if unknown:
+            import sys
+            print(
+                f"[OpenNotebook] WARNING: ignoring unknown key(s) {unknown} "
+                f"in config section {name!r} (known keys: {sorted(known)})",
+                file=sys.stderr,
+            )
+        return cls(**{k: v for k, v in data.items() if k in known})
+
+    llm = section(LLMSection, raw.get("llm"), "llm")
+    emb = section(Section, raw.get("embeddings"), "embeddings")
+    rnk = section(Section, raw.get("reranker"), "reranker")
+    wh = section(Section, raw.get("whisper"), "whisper")
+    return AppConfig(llm=llm, embeddings=emb, reranker=rnk, whisper=wh,
+                     data_dir=raw.get("data_dir"))
 
 
 def _validate(cfg: AppConfig) -> AppConfig:
-    """Loud-fail on the one thing that truly blocks us (no LLM); degrade on the rest."""
-    if not cfg.llm.base_url or not cfg.llm.model:
-        # ponytail: not a hard crash — return a flag so the UI can prompt setup.
-        return cfg
+    """Loud-fail on config values that would otherwise degrade mysteriously at
+    runtime (unknown provider names). A missing LLM is NOT fatal by design —
+    the app boots and the UI prompts for setup (main.py prints a warning)."""
+    for section_name in ("embeddings", "reranker", "whisper"):
+        provider = getattr(getattr(cfg, section_name), "provider", None)
+        if provider is not None and provider not in _KNOWN_PROVIDERS[section_name]:
+            raise ValueError(
+                f"config section {section_name!r} has unknown provider {provider!r}; "
+                f"known providers are {sorted(_KNOWN_PROVIDERS[section_name])}"
+            )
     return cfg
 
 

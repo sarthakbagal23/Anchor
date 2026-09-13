@@ -119,7 +119,7 @@ def _load_manifest(course_key: str) -> dict:
 def registered_courses() -> dict[str, str]:
     """course title -> CED exam_type for all manifests we can import."""
     out: dict[str, str] = {}
-    for title, _ in _CED_COURSES.items():
+    for title in _CED_COURSES.keys():
         out[title] = _load_manifest(title)["exam_type"]
     return out
 

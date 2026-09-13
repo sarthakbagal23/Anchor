@@ -43,6 +43,12 @@
   }
 
   function renderStored(m) {
+    // Citations arrive in their own field now; the delimiter split is only
+    // for pre-migration rows the backend didn't normalize.
+    if (m.role === "assistant" && m.citations && Object.keys(m.citations).length) {
+      Object.assign(AppState.citationMap, m.citations);
+      return bubble("assistant", formatFinal(m.content));
+    }
     if (m.role === "assistant" && m.content.includes("|||CITATIONS|||")) {
       const [text, mapJson] = m.content.split("|||CITATIONS|||");
       try { Object.assign(AppState.citationMap, JSON.parse(mapJson)); } catch { /* malformed stored map — show text without citations */ }
@@ -69,7 +75,7 @@
   async function streamAnswer(question, body, stopTimer, container, send) {
     const res = await fetch(Api.chatStreamUrl(AppState.workspaceId), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...Api.authHeaders() },
       body: JSON.stringify({ message: question }),
       signal: send.controller.signal,
     });

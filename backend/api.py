@@ -6,10 +6,11 @@ import json
 import os
 
 from fastapi import APIRouter, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from backend.config import AppConfig, load_config, save_config, data_dir
+from backend.config import _coerce, redact_secrets, strip_redacted
 from backend.store import Store
 from backend.grounding.pipeline import Pipeline
 from backend.study.guide import NO_OBJECTIVES_MSG
@@ -370,6 +371,18 @@ def assign_source(unit_id: int, source_id: int):
 async def add_source(ws_id: int, body: SourceIn):
     if not _STORE.get_workspace(ws_id):
         raise HTTPException(404, "workspace not found")
+    # Dedup: adding the same URL twice must not spawn two ingests, two vector
+    # sets, and duplicated answers. Match on the pre-ingest title (which IS the
+    # URL until ingest replaces it) or on the post-ingest youtube_id.
+    from backend.ingestion.youtube import extract_id
+    yid = extract_id(body.url)
+    dup = None
+    for s in _STORE.list_sources(ws_id):
+        if s.get("title") == body.url or (yid and s.get("youtube_id") == yid):
+            dup = s
+            break
+    if dup is not None:
+        return {"source_id": dup["id"]}
     # title/youtube_id filled by ingest after download; pre-create with url as title.
     src_id = _STORE.add_source(ws_id, "youtube", body.url, None, None)
     # kick off background ingestion (error-isolated inside ingest_url), then apply CED if AP
@@ -409,7 +422,6 @@ async def upload_source(ws_id: int, request: Request):
     # Persist the original PDF so the Source Preview can render it (PDF.js) and the
     # vision path can send page images.
     from backend.config import data_dir
-    from pathlib import Path
     ddir = data_dir(_CFG)
     (ddir / "pdf").mkdir(parents=True, exist_ok=True)
     file_path = str(ddir / "pdf" / f"{src_id}.pdf")
@@ -475,7 +487,7 @@ def source_progress(ws_id: int, src_id: int):
         for _ in range(600):  # 10 min ceiling
             s = _STORE.get_source(src_id)
             if not s:
-                yield f"event: error\ndata: not found\n\n"
+                yield "event: error\ndata: not found\n\n"
                 return
             if s["status"] != last:
                 yield f"data: {json.dumps({'status': s['status'], 'error': s.get('error')})}\n\n"
@@ -493,13 +505,13 @@ async def chat(ws_id: int, body: dict):
     query = body.get("message", "")
     _STORE.add_message(ws_id, "user", query)
     raw_history = _STORE.list_messages(ws_id)
-    # Strip citation blobs from stored assistant messages before sending to LLM
-    clean_history = []
-    for m in raw_history[:-1]:  # exclude the just-added user msg
-        if m["role"] == "assistant" and "|||CITATIONS|||" in m["content"]:
-            clean_history.append({"role": "assistant", "content": m["content"].split("|||CITATIONS|||")[0]})
-        else:
-            clean_history.append(m)
+    # Citations live in their own column now (list_messages also normalizes
+    # pre-migration delimiter rows), so history for the LLM is just
+    # role+content — no blob stripping, and no DB internals leaking into the
+    # prompt the way full row dicts used to.
+    clean_history = [
+        {"role": m["role"], "content": m["content"]} for m in raw_history[:-1]  # exclude the just-added user msg
+    ]
 
     def gen():
         try:
@@ -509,14 +521,14 @@ async def chat(ws_id: int, body: dict):
                 if delta.startswith("__CITATIONS__"):
                     cmap = json.loads(delta[len("__CITATIONS__"):])
                     yield f"event: citations\ndata: {json.dumps(cmap)}\n\n"
-                    _STORE.add_message(ws_id, "assistant", "".join(acc) + "|||CITATIONS|||" + json.dumps(cmap))
+                    _STORE.add_message(ws_id, "assistant", "".join(acc), citations=cmap)
                     return
                 acc.append(delta)
                 yield f"data: {json.dumps({'token': delta})}\n\n"
             # If stream ended without a __CITATIONS__ marker (no passages), still save and close
             if acc:
                 _STORE.add_message(ws_id, "assistant", "".join(acc))
-                yield f"event: citations\ndata: {{}}\n\n"
+                yield "event: citations\ndata: {}\n\n"
             if not acc:
                 # A completely empty stream must surface as an explicit error, never
                 # a silent blank bubble the user misreads as a hang.
@@ -541,18 +553,15 @@ async def chat_visual(ws_id: int, body: ChatIn):
     query = body.message
     _STORE.add_message(ws_id, "user", query)
     raw_history = _STORE.list_messages(ws_id)
-    clean_history = []
-    for m in raw_history[:-1]:
-        if m["role"] == "assistant" and "|||CITATIONS|||" in m["content"]:
-            clean_history.append({"role": "assistant", "content": m["content"].split("|||CITATIONS|||")[0]})
-        else:
-            clean_history.append(m)
+    clean_history = [
+        {"role": m["role"], "content": m["content"]} for m in raw_history[:-1]
+    ]
     try:
         from backend.grounding.visual import VisualPipeline
         vp = VisualPipeline(_STORE, _CFG)
         result = await asyncio.to_thread(vp.answer, query, ws_id, clean_history)
         cmap = result.get("citations", {})
-        _STORE.add_message(ws_id, "assistant", result["answer"] + "|||CITATIONS|||" + json.dumps(cmap))
+        _STORE.add_message(ws_id, "assistant", result["answer"], citations=cmap)
         return result
     except Exception as e:
         raise HTTPException(500, str(e))
@@ -561,7 +570,9 @@ async def chat_visual(ws_id: int, body: ChatIn):
 @router.get("/config")
 def get_config():
     from dataclasses import asdict
-    return asdict(_CFG)
+    # Secrets are redacted: the key is never sent to any client, including our
+    # own frontend (see #1 — zero-auth local server must not leak credentials).
+    return redact_secrets(asdict(_CFG))
 
 
 @router.patch("/config")
@@ -569,14 +580,16 @@ def patch_config(body: ConfigIn):
     from dataclasses import asdict
     global _CFG
     d = asdict(_CFG)
-    for k, v in body.model_dump(exclude_none=True).items():
+    # strip_redacted drops secrets still carrying the "***" marker, so a client
+    # that echoes get_config output can never persist the marker over the key.
+    incoming = strip_redacted(body.model_dump(exclude_none=True))
+    for k, v in incoming.items():
         if v:
             d[k].update(v)
     # reload into a new AppConfig and persist
-    from backend.config import _coerce
     _CFG = _coerce(d)
     save_config(_CFG)
-    return asdict(_CFG)
+    return redact_secrets(asdict(_CFG))
 
 
 @router.get("/health")
@@ -592,13 +605,83 @@ def build_app(store: Store, cfg: AppConfig) -> FastAPI:
     app.include_router(router)
     return app
 
+
+XSRF_COOKIE = "onb_xsrf"
+XSRF_HEADER = "x-auth-token"
+_LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}  # testserver = FastAPI TestClient
+
+
+def _origin_allowed(origin: str | None, referer: str | None) -> bool:
+    """Same-origin (or non-browser, i.e. neither header) requests pass. A
+    foreign Origin/Referer means a third-party page is driving the request."""
+    from urllib.parse import urlparse
+
+    for value in (origin, referer):
+        if not value:
+            continue
+        try:
+            host = (urlparse(value).hostname or "").lower()
+        except Exception:
+            return False
+        if host not in _LOCAL_HOSTS:
+            return False
+    return True
+
+
+def add_security_middleware(app: FastAPI, token: str):
+    """CSRF + DNS-rebind guard for a zero-auth local server (see main.py for
+    the threat model). Split out from main.py so tests can mount it on an
+    isolated app with a throwaway token.
+
+    Rules for /api/*, in order:
+    1. Host must be loopback (kills DNS rebinding).
+    2. A foreign Origin/Referer is refused outright, no bypass — browsers
+       always attach one on cross-origin requests and attacker pages cannot
+       suppress it, so this alone kills CSRF. (Deliberately, a valid token
+       does NOT override this: a bypass here would turn any token leak into
+       remote code execution via the ingest endpoints.)
+    3. Mutating methods from a browser-like client (Origin/Referer present,
+       hence allowlisted by rule 2, i.e. our own page) must also echo the
+       token in X-Auth-Token — defense in depth against same-origin XSS and
+       ancient browsers that omit Origin. The server sets the token as a
+       SameSite=Lax cookie our page reads; attackers can do neither.
+    Non-browser clients (curl, python, TestClient) send neither header and
+    pass through untouched. GET streams can't set custom headers
+    (EventSource), so they rely on rule 2 alone.
+    """
+    from fastapi.responses import JSONResponse
+
+    @app.middleware("http")
+    async def xsrf_protect(request, call_next):
+        path = request.url.path
+        if path.startswith("/api"):
+            host = (request.url.hostname or "").lower()
+            if host not in _LOCAL_HOSTS:
+                return JSONResponse({"detail": "Untrusted Host."}, status_code=403)
+            origin = request.headers.get("origin")
+            referer = request.headers.get("referer")
+            if not _origin_allowed(origin, referer):
+                return JSONResponse({"detail": "Cross-origin request refused."}, status_code=403)
+            browser_like = bool(origin or referer)
+            if browser_like and request.method not in ("GET", "HEAD", "OPTIONS"):
+                if request.headers.get(XSRF_HEADER) != token:
+                    return JSONResponse({"detail": "Missing or invalid auth token."}, status_code=403)
+        response = await call_next(request)
+        if request.method == "GET" and path in ("/", "/index.html"):
+            response.set_cookie(XSRF_COOKIE, token, path="/", samesite="lax")
+        return response
+
+    return app
+
 if __name__ == "__main__":
-    import tempfile, os
+    import tempfile
+    import os
     from fastapi.testclient import TestClient
     from backend.store import Store
     from backend.config import load_config
     db = os.path.join(tempfile.mkdtemp(), "t.db")
-    store = Store(db); store.init()
+    store = Store(db)
+    store.init()
     cfg = load_config()
     app = build_app(store, cfg)
     c = TestClient(app)
@@ -776,13 +859,14 @@ if __name__ == "__main__":
     # must NOT include the correct answer; the attempt endpoint grades server-side
     # and only then reveals the correct option + explanation.
     #
-    # Run on an ISOLATED Store + app: the shared store's vec_chunks virtual table is
-    # dropped/recreated whenever a different embedder dimension is used, so mixing
-    # a second embedder into the shared store would wipe earlier chunk vectors.
+    # Run on an ISOLATED Store + app: vec tables are namespaced by dim, so a
+    # second embedder is harmless to earlier vectors — but isolation also keeps
+    # this quiz's fixtures from leaking into the shared store's assertions.
     import backend.practice.generator as _prac_mod
 
     p_db = os.path.join(tempfile.mkdtemp(), "prac.db")
-    p_store = Store(p_db); p_store.init()
+    p_store = Store(p_db)
+    p_store.init()
     p_app = build_app(p_store, cfg)   # reassigns module singletons _STORE/_CFG
     p_client = TestClient(p_app)
     p_prac = p_store.add_course("AP Statistics Practice")

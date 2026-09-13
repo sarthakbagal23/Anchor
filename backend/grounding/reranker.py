@@ -46,8 +46,11 @@ if __name__ == "__main__":
     # In production this hits the real cross-encoder; here we sidestep model download
     # *and* the dependency: we inject a stub module into sys.modules so the lazy
     # `from sentence_transformers import CrossEncoder` resolves without installing the dep.
-    import os, sys, tempfile, types
-    from unittest.mock import patch, MagicMock
+    import os
+    import sys
+    import tempfile
+    import types
+    from unittest.mock import MagicMock
     from backend.config import AppConfig, Section
 
     os.environ["OPENNOTEBOOK_CONFIG_DIR"] = tempfile.mkdtemp()
@@ -62,16 +65,20 @@ if __name__ == "__main__":
     # scores[1] > scores[3] > scores[2] → chunk 1 first, chunk 3 second.
     fake.predict.return_value.tolist.return_value = [0.95, 0.10, 0.55]
     # pre-inject sentence_transformers module so the lazy import resolves to our stub.
-    if "sentence_transformers" not in sys.modules:
-        st = types.ModuleType("sentence_transformers")
-        st_class = MagicMock(return_value=fake)
-        st.CrossEncoder = st_class
-        sys.modules["sentence_transformers"] = st
-    with patch("sys.modules['sentence_transformers'].CrossEncoder", st_class := MagicMock(return_value=fake)):
+    # (patch() can't target sys.modules entries, so set the attribute directly;
+    # only when we injected the stub — never clobber a real installed module.)
+    injected = "sentence_transformers" not in sys.modules
+    if injected:
+        sys.modules["sentence_transformers"] = types.ModuleType("sentence_transformers")
+    sys.modules["sentence_transformers"].CrossEncoder = MagicMock(return_value=fake)
+    try:
         rr = get_reranker(cfg)
         ranked = rr.rerank(q, chunks)
         assert ranked[0]["id"] == 1, f"most relevant chunk should rank first, got {ranked[0]}"
         assert [c["id"] for c in ranked] == [1, 3, 2], f"ordering should be 1,3,2, got {ranked}"
+    finally:
+        if injected:
+            del sys.modules["sentence_transformers"]
     # remote reranker → deferred extension: produce a useful NotImplementedError when invoked.
     try:
         get_reranker(AppConfig(reranker=Section(provider="openai_compatible")))

@@ -5,7 +5,7 @@ import io
 from pathlib import PurePath
 
 from backend.config import AppConfig
-from backend.grounding.embedder import get_embedder
+from backend.grounding.embedder import get_embedder, embed_many
 from backend.store import Store
 
 SUPPORTED = {".pdf"}
@@ -76,21 +76,28 @@ def ingest_pdf(source_id: int, filename: str, data: bytes, cfg: AppConfig, store
         embedder = get_embedder(cfg)
         # Precompute vertical landmarks once so we can attach y_top to each chunk.
         pmap = _page_maps(file_path) if file_path else {}
-        index = 0
-        page_char: dict[int, int] = {}
+        pending: list[dict] = []
         for page_num, text in pages:
-            page_char[page_num] = page_char.get(page_num, 0)
+            start_char = 0
             for chunk in _chunks(text):
-                start_char = page_char.get(page_num, 0)
                 y = _chunk_y(pmap, page_num, start_char) if pmap else None
-                store.add_chunk(source_id, index, chunk, None, None, len(chunk.split()),
-                                embedder.embed(chunk), page_num=page_num, y_top=y)
-                page_char[page_num] = start_char + len(chunk)
-                index += 1
+                pending.append({"ord": len(pending), "text": chunk,
+                                "token_count": len(chunk.split()),
+                                "embedding": None, "page_num": page_num, "y_top": y})
+                start_char = start_char + len(chunk)
+        # One batched embedding call + one bulk insert (single commit).
+        vecs = embed_many(embedder, [r["text"] for r in pending])
+        for r, vec in zip(pending, vecs):
+            r["embedding"] = vec
+        store.add_chunks_bulk(source_id, pending)
         store.conn.execute("UPDATE sources SET title=? WHERE id=?", (filename, source_id))
         store.conn.commit()
         store.set_source_status(source_id, "ready")
     except Exception as exc:
+        try:
+            store.delete_source_chunks(source_id)
+        except Exception:
+            pass
         store.set_source_status(source_id, "failed", error=str(exc))
 
 

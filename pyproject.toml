@@ -23,3 +23,8 @@ local = [
 [tool.setuptools]
 py-modules = ["main"]
 packages = ["backend", "backend.grounding", "backend.ingestion", "backend.objectives", "backend.practice", "backend.study"]
+
+[tool.ruff.lint]
+# Bug rules only (unused imports/names, real errors, known-bad patterns):
+# style/import-sorting churn is deliberately out of scope for now.
+select = ["E4", "E7", "E9", "F", "UP035", "B018", "PERF102", "PERF402", "PIE810", "TRY004"]

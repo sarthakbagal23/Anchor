@@ -1,7 +1,7 @@
 """Thin OpenAI-compatible client (spec D1). One socket serves NVIDIA NIM,
 OpenRouter, Ollama, LM Studio, OpenAI — they all speak this API."""
 from __future__ import annotations
-from typing import Iterator
+from collections.abc import Iterator
 
 from openai import OpenAI
 from backend.config import AppConfig
@@ -9,8 +9,12 @@ from backend.config import AppConfig
 
 class LLMClient:
     def __init__(self, cfg: AppConfig):
+        # Explicit timeouts: the default client would hold a thread and an SSE
+        # connection indefinitely against a hung local server (Ollama/LM Studio).
+        # 300s per read still allows long generations — tokens arriving reset it.
         self.cfg = cfg
-        self._client = OpenAI(base_url=cfg.llm.base_url, api_key=cfg.llm.api_key or "unused")
+        self._client = OpenAI(base_url=cfg.llm.base_url, api_key=cfg.llm.api_key or "unused",
+                              timeout=300.0, max_retries=2)
         self.max_context = cfg.llm.max_context or 8192
 
     def active_model(self) -> str | None:

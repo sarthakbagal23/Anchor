@@ -12,12 +12,12 @@ import logging
 import re
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
-from backend.config import AppConfig, data_dir
+from backend.config import AppConfig
 from backend.store import Store
 from backend.grounding.pipeline import Pipeline
 from backend.ingestion import pdfrender
+
+logger = logging.getLogger(__name__)
 
 VISION_SYSTEM = (
     "You are OpenNotebook, a study assistant that can SEE the page images of a PDF the "
@@ -118,8 +118,7 @@ class VisualPipeline:
                 "text": pc["text"], "start_sec": pc.get("start_sec"),
                 "end_sec": pc.get("end_sec"), "page_num": pc.get("page_num"),
             } for pc in ordered]
-            msgs = self.base._build_prompt(query, temp_chunks, chat_history or [])
-            cmap = dict(self.base._last_citation_map)
+            msgs, cmap = self.base._build_prompt(query, temp_chunks, chat_history or [])
         if isinstance(msgs[-1].get("content"), str):
             # Trailing reminder: models obey instructions at the end of the
             # prompt far more reliably than ones buried in the system message.
@@ -152,9 +151,7 @@ class VisualPipeline:
 
         if page_img_b64 is None:
             # No PDF page could be rendered -> normal grounded text answer.
-            full = []
-            for delta in llm.stream(msgs):
-                full.append(delta)
+            full = list(llm.stream(msgs))
             return {"answer": "".join(full), "citations": cmap,
                     "annotations": [], "page": None, "source_title": None}
 
@@ -199,7 +196,8 @@ class VisualPipeline:
 
 
 if __name__ == "__main__":
-    import os, tempfile
+    import os
+    import tempfile
     os.environ["OPENNOTEBOOK_CONFIG_DIR"] = tempfile.mkdtemp()
     from backend.grounding.pipeline import Pipeline
     pipes = ["parse: " + str(len(parse_annotations(
@@ -214,7 +212,6 @@ if __name__ == "__main__":
     # evidence trim: 10 grounded passages -> the vision model sees the top 6
     # renumbered 1..6, and the returned map matches exactly what it saw (plus no
     # phantom citations are ever injected into a citation-less answer).
-    import json as _json
     from pathlib import Path as _Path
     from unittest.mock import patch as _patch
     from backend.config import load_config as _load_config

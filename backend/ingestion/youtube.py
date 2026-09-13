@@ -2,9 +2,26 @@
 from __future__ import annotations
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
+
+_YT_ID_RES = [
+    re.compile(r"youtu\.be/([A-Za-z0-9_-]{6,})"),
+    re.compile(r"[?&]v=([A-Za-z0-9_-]{6,})"),
+    re.compile(r"/embed/([A-Za-z0-9_-]{6,})"),
+    re.compile(r"/shorts/([A-Za-z0-9_-]{6,})"),
+]
+
+
+def extract_id(url: str) -> str | None:
+    """Best-effort YouTube video id from common URL forms (for dedup checks)."""
+    for rx in _YT_ID_RES:
+        m = rx.search(url or "")
+        if m:
+            return m.group(1)
+    return None
 
 
 def download(url: str, out_dir: str | None = None) -> tuple[str, str | None, str, str, int]:
@@ -17,7 +34,7 @@ def download(url: str, out_dir: str | None = None) -> tuple[str, str | None, str
         "--write-auto-sub", "--sub-format", "vtt", "--sub-langs", "en",
         "-o", out_tmpl, "--print-json", "--no-playlist", "--newline", url,
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True)
+    res = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
     if res.returncode != 0:
         raise RuntimeError(f"yt-dlp failed: {res.stderr.strip()}")
     data = json.loads(res.stdout.strip().splitlines()[-1])

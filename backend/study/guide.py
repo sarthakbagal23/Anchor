@@ -215,7 +215,9 @@ class StudyGuideGenerator:
 
 
 if __name__ == "__main__":
-    import tempfile, os, math
+    import tempfile
+    import os
+    import math
     from unittest.mock import MagicMock
 
     from backend.config import load_config, Section

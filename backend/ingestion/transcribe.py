@@ -2,7 +2,24 @@
 Emits [{text, start, end}] segments."""
 from __future__ import annotations
 from backend.config import AppConfig
+import os
 import re
+import threading
+
+# Process-level model cache keyed by (model, device, compute): loading from
+# disk costs tens of seconds, so without this every ingest pays full load.
+# Transcriptions are serialized on a lock (cheap relative to the transcribe
+# itself); concurrent ingests share the one loaded model instead of loading N.
+_MODEL_CACHE: dict = {}
+_MODEL_LOCK = threading.Lock()
+
+
+def _whisper_settings():
+    return (
+        os.environ.get("OPENNOTEBOOK_WHISPER_DEVICE", "cpu"),
+        os.environ.get("OPENNOTEBOOK_WHISPER_COMPUTE", "int8"),
+        int(os.environ.get("OPENNOTEBOOK_WHISPER_BEAM", "1")),
+    )
 
 def parse_vtt(vtt_path: str) -> list[dict]:
     with open(vtt_path, "r", encoding="utf-8") as f:
@@ -15,7 +32,7 @@ def parse_vtt(vtt_path: str) -> list[dict]:
     
     for line in content.splitlines():
         line = line.strip()
-        if not line or line.startswith("WEBVTT") or line.startswith("Kind:") or line.startswith("Language:") or line.startswith("Style:"):
+        if not line or line.startswith(("WEBVTT", "Kind:", "Language:", "Style:")):
             continue
             
         m = pattern.search(line)
@@ -29,8 +46,11 @@ def parse_vtt(vtt_path: str) -> list[dict]:
             
         text = re.sub(r"<[^>]+>", "", line).strip()
         if text:
-            # YouTube VTT roll-up captions deduplication
-            if segments and text in segments[-1]["text"]:
+            # YouTube VTT roll-up captions repeat lines: extend on growth,
+            # drop only exact duplicates. A substring test here would eat a
+            # genuinely new short caption that happens to appear inside the
+            # previous line.
+            if segments and text == segments[-1]["text"]:
                 continue
             if segments and segments[-1]["text"] in text:
                 segments[-1]["text"] = text
@@ -54,9 +74,15 @@ def _bundled_transcribe(audio_path: str, model_name: str) -> list[dict]:
         from faster_whisper import WhisperModel
     except ImportError as e:
         raise RuntimeError("faster-whisper is not installed. Run `pip install faster-whisper` or `pip install -e .[local]`") from e
-    model = WhisperModel(model_name, device="cpu", compute_type="int8")
-    segments, _info = model.transcribe(audio_path, beam_size=1)
-    return [{"text": s.text.strip(), "start": float(s.start), "end": float(s.end)} for s in segments]
+    device, compute, beam = _whisper_settings()
+    key = (model_name, device, compute)
+    model = _MODEL_CACHE.get(key)
+    if model is None:
+        model = WhisperModel(model_name, device=device, compute_type=compute)
+        _MODEL_CACHE[key] = model
+    with _MODEL_LOCK:
+        segments, _info = model.transcribe(audio_path, beam_size=beam)
+        return [{"text": s.text.strip(), "start": float(s.start), "end": float(s.end)} for s in segments]
 
 
 def _remote_transcribe(audio_path: str, w) -> list[dict]:
@@ -76,7 +102,8 @@ def _remote_transcribe(audio_path: str, w) -> list[dict]:
 
 
 if __name__ == "__main__":
-    import sys, types
+    import sys
+    import types
     from unittest.mock import MagicMock
     from backend.config import AppConfig, Section
     cfg = AppConfig(whisper=Section(provider="bundled", model="tiny"))

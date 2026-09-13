@@ -4,7 +4,6 @@ post-ingest import works for a non-Statistics course.
 
 Hermetic: tmp Store + hashing embedder, no network, no weights.
 """
-import json
 import re
 
 from backend.grounding.embedder import _HashingEmbedder

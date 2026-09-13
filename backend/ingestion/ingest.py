@@ -8,7 +8,7 @@ from backend.store import Store
 from backend.ingestion import youtube as youtube_mod
 from backend.ingestion import transcribe as transcribe_mod
 from backend.grounding.chunker import group
-from backend.grounding.embedder import get_embedder
+from backend.grounding.embedder import get_embedder, embed_many
 
 # friendly aliases the self-check patches
 youtube_download = youtube_mod.download
@@ -16,9 +16,16 @@ transcribe = transcribe_mod.transcribe
 
 
 def ingest_url(source_id: int, url: str, cfg: AppConfig, store: Store) -> None:
+    tmpdir: str | None = None
     try:
         store.set_source_status(source_id, "downloading")
         audio_path, vtt_path, title, yid, duration = youtube_download(url)
+        # download() owns its out_dir only when it created it (mkdtemp onb_*
+        # prefix); caller-supplied dirs (tests, custom flows) are left alone.
+        import os as _os
+        cand = _os.path.dirname(_os.path.abspath(audio_path))
+        if _os.path.basename(cand).startswith("onb_"):
+            tmpdir = cand
         store.set_source_status(source_id, "transcribing")
         if vtt_path:
             segments = transcribe_mod.parse_vtt(vtt_path)
@@ -27,9 +34,16 @@ def ingest_url(source_id: int, url: str, cfg: AppConfig, store: Store) -> None:
         store.set_source_status(source_id, "chunking")
         chunks = group(segments)
         emb = get_embedder(cfg)
-        for i, c in enumerate(chunks):
-            vec = emb.embed(c.text)
-            store.add_chunk(source_id, i, c.text, int(c.start_sec), int(c.end_sec), c.token_count, vec)
+        # One batched embedding call + one bulk insert (single commit) instead
+        # of per-chunk embed/commit: hundreds of chunks per lecture otherwise
+        # means hundreds of fsyncs and model calls.
+        vecs = embed_many(emb, [c.text for c in chunks])
+        store.add_chunks_bulk(source_id, [
+            {"ord": i, "text": c.text, "start_sec": int(c.start_sec),
+             "end_sec": int(c.end_sec), "token_count": c.token_count,
+             "embedding": vecs[i]}
+            for i, c in enumerate(chunks)
+        ])
         # Update the source with the extracted metadata
         store.conn.execute(
             "UPDATE sources SET title=?, youtube_id=?, duration_sec=? WHERE id=?",
@@ -38,7 +52,22 @@ def ingest_url(source_id: int, url: str, cfg: AppConfig, store: Store) -> None:
         store.conn.commit()
         store.set_source_status(source_id, "ready")
     except Exception as e:
+        # A failed source must not leave retrievable partial chunks behind:
+        # search() only returns 'ready' sources, but deleting here keeps the
+        # index clean and honors the failed status the UI shows.
+        try:
+            store.delete_source_chunks(source_id)
+        except Exception:
+            pass
         store.set_source_status(source_id, "failed", error=str(e))
+    finally:
+        # Every ingested video leaks audio+VTT into %TEMP% forever without this.
+        if tmpdir:
+            import shutil as _shutil
+            try:
+                _shutil.rmtree(tmpdir, ignore_errors=True)
+            except Exception:
+                pass
 
 
 async def _run(source_id: int, url: str, cfg: AppConfig, store: Store) -> None:
@@ -47,12 +76,15 @@ async def _run(source_id: int, url: str, cfg: AppConfig, store: Store) -> None:
     await asyncio.to_thread(ingest_url, source_id, url, cfg, store)
 
 if __name__ == "__main__":
-    import tempfile, os, asyncio
+    import tempfile
+    import os
+    import asyncio
     from unittest.mock import patch
     from backend.config import load_config
     from backend.store import Store
     db = os.path.join(tempfile.mkdtemp(), "t.db")
-    store = Store(db); store.init()
+    store = Store(db)
+    store.init()
     cfg = load_config()
     # Mock to use hashing embedder
     from backend.config import Section

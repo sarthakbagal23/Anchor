@@ -2,9 +2,13 @@
 long pauses, or topic-shift cues — never splitting a sentence."""
 from __future__ import annotations
 from dataclasses import dataclass
+import re
 
+# Whole-word cue match: a bare startswith("now") also fires on "nowhere" and
+# "nowadays", splitting topics on ordinary vocabulary.
 CUE_WORDS = ("chapter", "section", "now", "next", "moving on", "let's", "summary", "recap", "question")
-HARD_CAP_MULT = 2  # ponytail: a chunk never exceeds 2× max_tokens even with no clean sentence boundary.
+_CUE_RES = [re.compile(r"^" + re.escape(c) + r"(?=\s|$|[,.?!;:])") for c in CUE_WORDS]
+HARD_CAP_MULT = 2  # a chunk never exceeds 2× max_tokens even with no clean sentence boundary.
 
 
 @dataclass
@@ -16,7 +20,7 @@ class Chunk:
 
 
 def _approx_tokens(text: str) -> int:
-    # ponytail: words≈tokens is good enough for context fitting; upgrade to tiktoken if needed.
+    # words≈tokens is good enough for context fitting; upgrade to tiktoken if needed.
     return len(text.split())
 
 
@@ -47,10 +51,10 @@ def group(segments: list[dict], max_tokens: int = 300, pause_sec: float = 1.5) -
             continue
         gap = max(0.0, seg["start"] - prev_end)
         tok = _approx_tokens(text)
-        topic_shift = any(text.lower().startswith(c) for c in CUE_WORDS) and cur_text
-        would_exceed = cur_tok + tok > max_tokens
+        lowered = text.lower()
+        topic_shift = any(rx.match(lowered) for rx in _CUE_RES) and cur_text
         # split BEFORE adding if a boundary condition fires, but only at sentence ends.
-        # would_exceed is a soft trigger — only flush if also at a sentence boundary;
+        # soft_exceed is a soft trigger — only flush if also at a sentence boundary;
         # the hard cap is the safety net for degenerate text with no sentence breaks.
         soft_exceed = cur_tok + tok > max_tokens
         hard_exceed = cur_tok + tok > max_tokens * HARD_CAP_MULT

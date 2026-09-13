@@ -2,7 +2,7 @@
 prompt -> stream + citation map."""
 from __future__ import annotations
 import json
-from typing import Iterator
+from collections.abc import Iterator
 
 from backend.config import AppConfig
 from backend.store import Store
@@ -12,6 +12,12 @@ from backend.grounding.reranker import get_reranker
 from backend.grounding.citations import build_map
 
 RESERVE_TOKENS_FOR_ANSWER = 1500
+# Chat history is budgeted separately from passages (_fit_context only budgets
+# passages): without this, a long session blows the context window of exactly
+# the small local models this tool targets, producing provider errors instead
+# of graceful truncation.
+MAX_HISTORY_MESSAGES = 20  # ~10 back-and-forth turns
+MAX_HISTORY_CHARS = 12000
 SYSTEM = (
     "You are OpenNotebook, a careful study assistant. Your job is to help a student "
     "understand their class material, prepare for assessment, and identify what to review. "
@@ -40,6 +46,23 @@ SYSTEM = (
     "give a structured overview that spans as many sources as you can find: key concepts, definitions, "
     "formulas, steps, common pitfalls, and how to apply them to exam questions."
 )
+
+
+def _trim_history(chat_history: list[dict]) -> list[dict]:
+    """Newest-first budget: keep the most recent turns that fit in both the
+    message count and the char budget. Continuity for long sessions comes from
+    recency; the current question is always appended separately by callers."""
+    kept: list[dict] = []
+    used = 0
+    for m in reversed(chat_history or []):
+        content = m.get("content") if isinstance(m, dict) else ""
+        size = len(content) if isinstance(content, str) else 0
+        if len(kept) >= MAX_HISTORY_MESSAGES or used + size > MAX_HISTORY_CHARS:
+            break
+        kept.append(m)
+        used += size
+    kept.reverse()
+    return kept
 
 
 def _interleave_by_source(ranked: list[dict]) -> list[dict]:
@@ -95,12 +118,12 @@ class Pipeline:
         for c in ranked:
             tc = c.get("token_count") or len(c["text"].split())
             if used + tc > budget:
-                break
+                continue  # skip the oversized chunk; smaller later ones may still fit
             kept.append(c)
             used += tc
         return kept
 
-    def _build_prompt(self, query: str, kept: list[dict], chat_history: list[dict]) -> list[dict]:
+    def _build_prompt(self, query: str, kept: list[dict], chat_history: list[dict]) -> tuple[list[dict], dict]:
         src_ids = {c["source_id"] for c in kept}
         sources = {s["id"]: s for s in [self.store.get_source(sid) for sid in src_ids] if s}
         blocks, passage_chunks = [], []
@@ -127,11 +150,10 @@ class Pipeline:
         passages_block = "\n\n".join(blocks)
         user = f"STUDENT QUESTION: {query}\n\nSOURCE EVIDENCE FROM THE STUDY MATERIAL:\n{passages_block}"
         messages = [{"role": "system", "content": SYSTEM}]
-        for m in chat_history:
+        for m in _trim_history(chat_history):
             messages.append({"role": m["role"], "content": m["content"]})
         messages.append({"role": "user", "content": user})
-        self._last_citation_map = build_map(passage_chunks)
-        return messages
+        return messages, build_map(passage_chunks)
 
     def ground(self, query: str, workspace_id: int, chat_history: list[dict] | None = None) -> tuple[list[dict], dict]:
         chat_history = chat_history or []
@@ -140,10 +162,8 @@ class Pipeline:
         if not kept:
             msgs = [{"role": "system", "content": SYSTEM},
                     {"role": "user", "content": query}]
-            self._last_citation_map = {}
             return msgs, {}
-        msgs = self._build_prompt(query, kept, chat_history)
-        return msgs, self._last_citation_map
+        return self._build_prompt(query, kept, chat_history)
 
     def stream_answer(self, query: str, workspace_id: int, chat_history: list[dict] | None = None,
                       llm_stream=None) -> Iterator[str]:
@@ -166,7 +186,8 @@ def _fmt_ts(sec):
 
 
 if __name__ == "__main__":
-    import tempfile, os
+    import tempfile
+    import os
     os.environ["OPENNOTEBOOK_CONFIG_DIR"] = tempfile.mkdtemp()
     from backend.config import load_config, Section
     from backend.store import Store

@@ -3,8 +3,21 @@
  * file. EASY to extend: adding a new backend route just means adding one line
  * below that follows the existing pattern — the error handling is shared. */
 (function () {
+  // CSRF token the server sets as a SameSite=Lax cookie on GET /. Our own
+  // page echoes it back as X-Auth-Token on mutating calls (see main.py's
+  // xsrf_protect); a third-party page can do neither, so forged requests die
+  // with 403 while plain curl/python (no Origin) keeps working token-free.
+  function xsrfToken() {
+    const m = document.cookie.match(/(?:^|;\s*)onb_xsrf=([^;]*)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+  function authHeaders() {
+    const t = xsrfToken();
+    return t ? { "X-Auth-Token": t } : {};
+  }
   async function request(path, options) {
-    const res = await fetch(path, options);
+    const merged = { ...(options || {}), headers: { ...authHeaders(), ...((options && options.headers) || {}) } };
+    const res = await fetch(path, merged);
     const contentType = res.headers.get("content-type") || "";
     const data = contentType.includes("application/json") ? await res.json().catch(() => ({})) : null;
     if (!res.ok) {
@@ -28,6 +41,7 @@
   });
 
   window.Api = {
+    authHeaders,
     // workspaces
     listWorkspaces: () => get("/api/workspaces"),
     getWorkspace: (id) => get(`/api/workspaces/${id}`),
@@ -51,7 +65,7 @@
     sourceStreamUrl: (wsId, srcId) => `/api/workspaces/${wsId}/sources/${srcId}/stream`,
     pdfFileUrl: (wsId, srcId) => `/api/workspaces/${wsId}/sources/${srcId}/file`,
     pdfPageImageUrl: (wsId, srcId, page) => `/api/workspaces/${wsId}/sources/${srcId}/pages/${page}/image`,
-    uploadPdf: (wsId, formData) => fetch(`/api/workspaces/${wsId}/uploads`, { method: "POST", body: formData })
+    uploadPdf: (wsId, formData) => fetch(`/api/workspaces/${wsId}/uploads`, { method: "POST", headers: authHeaders(), body: formData })
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {

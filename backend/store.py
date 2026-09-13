@@ -6,7 +6,6 @@ import re
 import sqlite3
 import time
 import threading
-from typing import Any
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS workspaces(
@@ -164,7 +163,7 @@ class Store:
         self.vec_dim = vec_dim
         self._vec_ready = False
         # Force a connection now (main thread), running migrations on a real conn.
-        self.conn
+        _ = self.conn
 
     @property
     def conn(self) -> sqlite3.Connection:
@@ -213,6 +212,12 @@ class Store:
         msg_cols = {r[1] for r in self.conn.execute("PRAGMA table_info(messages)")}
         if "notebook_id" in msg_cols and "workspace_id" not in msg_cols:
             self.conn.execute("ALTER TABLE messages RENAME COLUMN notebook_id TO workspace_id")
+        if "citations" not in msg_cols:
+            # Citations used to ride inside content behind a |||CITATIONS|||
+            # delimiter (fragile: a model emitting that literal corrupted
+            # history). They now live in their own column; the delimiter is
+            # only parsed back out of pre-migration rows at read time.
+            self.conn.execute("ALTER TABLE messages ADD COLUMN citations TEXT")
 
         chunk_cols = {r[1] for r in self.conn.execute("PRAGMA table_info(chunks)")}
         if "y_top" not in chunk_cols:
@@ -239,25 +244,70 @@ class Store:
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (name,)
         ).fetchone() is not None
 
+    def _vec_table(self, dim: int) -> str:
+        if not isinstance(dim, int) or isinstance(dim, bool) or dim <= 0:
+            raise ValueError(f"bad vector dim {dim!r}")
+        return f"vec_chunks_{dim}"
+
+    def _vec_tables(self) -> list[str]:
+        """All vector tables present in this DB (current dim tables plus any
+        legacy/downgraded orphans), for sweeping deletes."""
+        self._load_vec_module()
+        rows = self.conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND (name='vec_chunks' OR name LIKE 'vec_chunks\\_%' ESCAPE '\\')"
+        ).fetchall()
+        return [r[0] for r in rows]
+
     def _ensure_vec(self, dim: int) -> None:
         # Runs per-thread: every connection must load sqlite-vec and (re)create the
         # vec table before use, so we ignore the shared _vec_ready flag here.
         import sqlite_vec  # lazy
         self.conn.enable_load_extension(True)
         self.conn.load_extension(sqlite_vec.loadable_path())
-        # Reconcilire dim: a vec0 table created by an earlier session (e.g. a 256-dim
-        # fallback embedder) cannot accept a different dim. If the stored schema's dim
-        # differs, rebuild it empty with the current embedder's dim.
-        row = self.conn.execute(
-            "SELECT sql FROM sqlite_master WHERE type='table' AND name='vec_chunks'"
+        # Namespace tables by dim: switching embedders used to DROP the table and
+        # silently destroy every embedding. Now each dim gets its own table, so a
+        # config change degrades to "new-dim index starts empty" instead of data
+        # loss — and switching back still finds the old vectors intact.
+        tbl = self._vec_table(dim)
+        exists = self.conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (tbl,)
         ).fetchone()
-        if row is not None and row["sql"] is not None:
-            m = re.search(r"FLOAT\[(\d+)\]", row["sql"])
-            if m and int(m.group(1)) != dim:
-                self.conn.execute("DROP TABLE vec_chunks")
-        self.conn.execute(
-            f"CREATE VIRTUAL TABLE IF NOT EXISTS vec_chunks USING vec0(embedding FLOAT[{dim}])"
-        )
+        if not exists:
+            # One-time transparent migration from the pre-namespacing layout
+            # (ALTER TABLE RENAME does not work on vec0 shadow tables, so copy).
+            # If migration fails for any reason, fall back to an empty table
+            # rather than bricking retrieval — the legacy table is left intact
+            # for manual recovery and a warning names it.
+            legacy = self.conn.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table' AND name='vec_chunks'"
+            ).fetchone()
+            migrated = False
+            if legacy is not None and legacy["sql"] is not None:
+                m = re.search(r"FLOAT\[(\d+)\]", legacy["sql"])
+                if m and int(m.group(1)) == dim:
+                    try:
+                        self.conn.execute(
+                            f'CREATE VIRTUAL TABLE "{tbl}" USING vec0(embedding FLOAT[{dim}])'
+                        )
+                        self.conn.execute(
+                            f'INSERT INTO "{tbl}"(rowid, embedding) SELECT rowid, embedding FROM vec_chunks'
+                        )
+                        self.conn.execute("DROP TABLE vec_chunks")
+                        migrated = True
+                    except Exception as e:
+                        self.conn.rollback()
+                        import sys
+                        print(
+                            f"[OpenNotebook] WARNING: vec migration failed ({e}); "
+                            "starting this dimension empty, legacy vec_chunks kept.",
+                            file=sys.stderr,
+                        )
+            if not migrated:
+                self.conn.execute(
+                    f'CREATE VIRTUAL TABLE IF NOT EXISTS "{tbl}" USING vec0(embedding FLOAT[{dim}])'
+                )
+        # Commit so other threads' connections see a fresh table or migration.
+        self.conn.commit()
         self._vec_ready = True
         self.vec_dim = dim
 
@@ -413,15 +463,33 @@ class Store:
         ]
 
     def delete_source(self, source_id: int) -> None:
-        if self._table_exists("vec_chunks"):
-            self._load_vec_module()
-            self.conn.execute("DELETE FROM vec_chunks WHERE rowid IN (SELECT id FROM chunks WHERE source_id=?)", (source_id,))
+        for tbl in self._vec_tables():
+            self.conn.execute(
+                f'DELETE FROM "{tbl}" WHERE rowid IN (SELECT id FROM chunks WHERE source_id=?)',
+                (source_id,),
+            )
         self.conn.execute(
             "DELETE FROM objective_chunks WHERE chunk_id IN (SELECT id FROM chunks WHERE source_id=?)",
             (source_id,),
         )
         self.conn.execute("DELETE FROM chunks WHERE source_id=?", (source_id,))
         self.conn.execute("DELETE FROM sources WHERE id=?", (source_id,))
+        self.conn.commit()
+
+    def delete_source_chunks(self, source_id: int) -> None:
+        """Remove a source's chunks + vectors + coverage links but keep the
+        source row itself. Used when ingest fails, so a failed (or
+        half-downloaded) source can never leak retrievable partial chunks."""
+        for tbl in self._vec_tables():
+            self.conn.execute(
+                f'DELETE FROM "{tbl}" WHERE rowid IN (SELECT id FROM chunks WHERE source_id=?)',
+                (source_id,),
+            )
+        self.conn.execute(
+            "DELETE FROM objective_chunks WHERE chunk_id IN (SELECT id FROM chunks WHERE source_id=?)",
+            (source_id,),
+        )
+        self.conn.execute("DELETE FROM chunks WHERE source_id=?", (source_id,))
         self.conn.commit()
 
     # --- chunks + vectors ---
@@ -446,7 +514,8 @@ class Store:
         chunk_id = cur.lastrowid
         try:
             self.conn.execute(
-                "INSERT INTO vec_chunks(rowid, embedding) VALUES(?, ?)", (chunk_id, _pack(embedding))
+                f'INSERT INTO "{self._vec_table(len(embedding))}"(rowid, embedding) VALUES(?, ?)',
+                (chunk_id, _pack(embedding)),
             )
         except Exception:
             self.conn.rollback()
@@ -461,32 +530,50 @@ class Store:
         rows = self.conn.execute(f"SELECT * FROM chunks WHERE id IN ({ph})", chunk_ids)
         return [dict(r) for r in rows]
 
+    def add_chunks_bulk(self, source_id: int, rows: list[dict]) -> list[int]:
+        """Insert many chunks + vectors with ONE commit (ingest path). Each row
+        needs ord/text/token_count/embedding, with optional start_sec, end_sec,
+        page_num, y_top. All embeddings must share one dim. Returns new ids in
+        row order. Prefer over add_chunk in loops: a 2-hour lecture is hundreds
+        of chunks, and per-chunk commits fsync every time."""
+        if not rows:
+            return []
+        dim = len(rows[0]["embedding"])
+        self._ensure_vec(dim)
+        tbl = self._vec_table(dim)
+        chunk_ids = []
+        try:
+            for r in rows:
+                cur = self.conn.execute(
+                    "INSERT INTO chunks(source_id, ord, text, start_sec, end_sec, page_num, y_top, token_count) "
+                    "VALUES(?,?,?,?,?,?,?,?)",
+                    (source_id, r["ord"], r["text"], r.get("start_sec"), r.get("end_sec"),
+                     r.get("page_num"), r.get("y_top"), r["token_count"]),
+                )
+                chunk_ids.append(cur.lastrowid)
+            self.conn.executemany(
+                f'INSERT INTO "{tbl}"(rowid, embedding) VALUES(?, ?)',
+                [(cid, _pack(rows[i]["embedding"])) for i, cid in enumerate(chunk_ids)],
+            )
+        except Exception:
+            self.conn.rollback()
+            raise
+        self.conn.commit()
+        return chunk_ids
+
     def search(self, query_vec: list[float], workspace_id: int, k: int = 20) -> list[int]:
+        """Top-k chunk ids for one workspace. Pulls a generous candidate pool
+        from the vec index first (sqlite-vec can't filter by workspace inside
+        the MATCH clause, so a tight k would let other workspaces' chunks crowd
+        out this workspace's), then keeps the k nearest belonging to the
+        workspace. Only 'ready' sources are ever returned — chunks from failed,
+        queued, or mid-download sources must not reach the model."""
         self._ensure_vec(len(query_vec))
+        tbl = self._vec_table(len(query_vec))
         rows = self.conn.execute(
-            """
-            SELECT v.rowid, c.source_id, s.workspace_id, v.distance
-            FROM vec_chunks v
-            JOIN chunks c ON c.id = v.rowid
-            JOIN sources s ON s.id = c.source_id
-            WHERE v.embedding MATCH ? AND k = ?
-            ORDER BY v.distance
-            """,
-            (_pack(query_vec), k),
-        ).fetchall()
-        return [r["rowid"] for r in rows if r["workspace_id"] == workspace_id]
-
-    def search_unit(self, query_vec: list[float], unit_id: int, k: int = 20) -> list[tuple[int, float]]:
-        """Top-k (chunk_id, cosine_distance) restricted to one unit's sources.
-
-        Pulls a generous candidate set from the vec index (sqlite-vec can't filter
-        by unit in the MATCH clause), then keeps the k nearest chunks whose
-        source belongs to the unit."""
-        self._ensure_vec(len(query_vec))
-        rows = self.conn.execute(
-            """
-            SELECT v.rowid, c.source_id, s.unit_id, v.distance
-            FROM vec_chunks v
+            f"""
+            SELECT v.rowid, c.source_id, s.workspace_id, s.status, v.distance
+            FROM "{tbl}" v
             JOIN chunks c ON c.id = v.rowid
             JOIN sources s ON s.id = c.source_id
             WHERE v.embedding MATCH ? AND k = ?
@@ -494,7 +581,31 @@ class Store:
             """,
             (_pack(query_vec), max(k * 8, 200)),
         ).fetchall()
-        return [(r["rowid"], r["distance"]) for r in rows if r["unit_id"] == unit_id][:k]
+        return [r["rowid"] for r in rows
+                if r["workspace_id"] == workspace_id and r["status"] == "ready"][:k]
+
+    def search_unit(self, query_vec: list[float], unit_id: int, k: int = 20) -> list[tuple[int, float]]:
+        """Top-k (chunk_id, cosine_distance) restricted to one unit's sources.
+
+        Pulls a generous candidate set from the vec index (sqlite-vec can't filter
+        by unit in the MATCH clause), then keeps the k nearest chunks whose
+        source belongs to the unit. Only 'ready' sources are ever returned."""
+
+        self._ensure_vec(len(query_vec))
+        tbl = self._vec_table(len(query_vec))
+        rows = self.conn.execute(
+            f"""
+            SELECT v.rowid, c.source_id, s.unit_id, s.status, v.distance
+            FROM "{tbl}" v
+            JOIN chunks c ON c.id = v.rowid
+            JOIN sources s ON s.id = c.source_id
+            WHERE v.embedding MATCH ? AND k = ?
+            ORDER BY v.distance
+            """,
+            (_pack(query_vec), max(k * 8, 200)),
+        ).fetchall()
+        return [(r["rowid"], r["distance"]) for r in rows
+                if r["unit_id"] == unit_id and r["status"] == "ready"][:k]
 
     # --- learning objectives + objective-chunk coverage ---
     def add_learning_objective(
@@ -755,20 +866,43 @@ class Store:
         return dict(r) if r else None
 
     # --- messages ---
-    def add_message(self, workspace_id: int, role: str, content: str) -> None:
+    def add_message(self, workspace_id: int, role: str, content: str, citations: dict | str | None = None) -> None:
+        if isinstance(citations, dict):
+            citations = json.dumps(citations)
         self.conn.execute(
-            "INSERT INTO messages(workspace_id, role, content, created_at) VALUES(?,?,?,?)",
-            (workspace_id, role, content, time.time()),
+            "INSERT INTO messages(workspace_id, role, content, citations, created_at) VALUES(?,?,?,?,?)",
+            (workspace_id, role, content, citations, time.time()),
         )
         self.conn.commit()
 
     def list_messages(self, workspace_id: int) -> list[dict]:
-        return [
-            dict(r)
-            for r in self.conn.execute(
-                "SELECT * FROM messages WHERE workspace_id=? ORDER BY created_at", (workspace_id,)
-            )
-        ]
+        # Order by id, not created_at: float timestamps can collide within one
+        # scheduling quantum and swap two messages, which corrupts the history
+        # order the LLM sees. created_at stays for display only.
+        # Each row also carries a parsed "citations" dict (or None); legacy rows
+        # that still embed the |||CITATIONS||| blob in content are normalized here.
+        out = []
+        for r in self.conn.execute(
+            "SELECT * FROM messages WHERE workspace_id=? ORDER BY id", (workspace_id,)
+        ):
+            d = dict(r)
+            cmap = None
+            if d.get("citations"):
+                try:
+                    cmap = json.loads(d["citations"])
+                except Exception:
+                    cmap = None
+            if cmap is None and "|||CITATIONS|||" in (d.get("content") or ""):
+                text, _, blob = d["content"].partition("|||CITATIONS|||")
+                try:
+                    cmap = json.loads(blob)
+                except Exception:
+                    cmap = None
+                else:
+                    d["content"] = text
+            d["citations"] = cmap
+            out.append(d)
+        return out
 
 
 if __name__ == "__main__":
