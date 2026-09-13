@@ -21,6 +21,12 @@
 (function () {
   const { $, escapeHtml } = Dom;
 
+  // Only one question may be in flight at a time. A new send supersedes the
+  // previous one: the old request is aborted and its bubble is settled
+  // silently, so hung requests can never pile up server-side (each one holds
+  // a thread + SQLite time) and the UI never shows two spinners at once.
+  let activeSend = null;
+
   function hasReadyPdf() {
     return AppState.sources.some((s) => s.type === "pdf" && s.status === "ready");
   }
@@ -60,11 +66,12 @@
     container.scrollTop = container.scrollHeight;
   }
 
-  async function streamAnswer(question, body, stopTimer, container) {
+  async function streamAnswer(question, body, stopTimer, container, send) {
     const res = await fetch(Api.chatStreamUrl(AppState.workspaceId), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: question }),
+      signal: send.controller.signal,
     });
     if (!res.ok) {
       const detail = await res.json().catch(() => ({}));
@@ -82,6 +89,7 @@
 
     await SSE.readEventStream(res, {
       onEvent(name, payload) {
+        send.markProgress(); // any frame proves the model is alive; resets the first-token deadline
         if (name === "citations") {
           stopTimer();
           AppState.citationMap = SSE.readJSON(payload, {});
@@ -114,6 +122,35 @@
       if (!question) return;
       input.value = "";
 
+      // Supersede any still-running send: abort its request and settle its
+      // bubble silently, so the new question is the only thing in flight.
+      if (activeSend) {
+        const prev = activeSend;
+        activeSend = null;
+        prev.superseded = true;
+        try { prev.controller.abort(); } catch {}
+        try { prev.settleOld && prev.settleOld(); } catch {}
+      }
+      const send = {
+        controller: new AbortController(),
+        superseded: false, timedOut: false, settled: false,
+        firstTokenTimer: null, settleOld: null,
+        markProgress() { clearTimeout(send.firstTokenTimer); send.firstTokenTimer = null; },
+      };
+      activeSend = send;
+      // First-token deadline for whichever path is running: 120s with no SSE
+      // frame means the model is stalled, so abort instead of spinning forever.
+      // Re-armed below whenever we switch paths (send start -> text fallback).
+      const armFirstTokenTimer = () => {
+        clearTimeout(send.firstTokenTimer);
+        send.firstTokenTimer = setTimeout(() => {
+          if (send.settled || send.superseded) return;
+          send.timedOut = true;
+          try { send.controller.abort(); } catch {}
+        }, 120000);
+      };
+      armFirstTokenTimer();
+
       const container = $("messages");
       const empty = $("empty-state");
       if (empty) empty.remove();
@@ -132,53 +169,73 @@
       const tick = setInterval(() => { timerEl.textContent = `${Math.round((Date.now() - t0) / 1000)}s`; }, 1000);
       let stopped = false;
       const stopTimer = () => { if (!stopped) { stopped = true; clearInterval(tick); } };
+      send.settleOld = () => {
+        stopTimer();
+        body.classList.remove("streaming");
+        const label = assistant.querySelector(".thinking-txt");
+        if (label) label.textContent = "Stopped — answering your newer question below.";
+        const cursor = assistant.querySelector(".cursor");
+        if (cursor) cursor.remove();
+      };
 
       try {
         if (hasReadyPdf()) {
           assistant.querySelector(".thinking-txt").textContent = "Reading the PDF";
           // The vision call is non-streaming with no server-side deadline, and the
-          // hosted vision model can stall for minutes. Bound the wait: on timeout
-          // abort and fall through to the normal grounded text stream below
-          // instead of leaving "Reading the PDF" up forever. 90s comfortably
-          // covers a healthy vision round-trip (~35s observed) while capping a
-          // stall. The catch block already falls back to streamAnswer() on any
-          // error, and an AbortError takes that same path.
+          // hosted vision model can stall for minutes. Bound the wait at 90s
+          // (a healthy round-trip is ~35s): on timeout abort and fall through to
+          // the normal grounded text stream instead of spinning forever.
           const visualCtl = new AbortController();
           const visualTimer = setTimeout(() => visualCtl.abort(), 90000);
-          let data;
+          const onSendAbort = () => { try { visualCtl.abort(); } catch {} };
+          send.controller.signal.addEventListener("abort", onSendAbort);
+          let data = null, visualFailed = false;
           try {
             data = await Api.chatVisual(AppState.workspaceId, question, { signal: visualCtl.signal });
+          } catch (vErr) {
+            visualFailed = true;
+            if (!send.superseded && vErr && vErr.name === "AbortError") {
+              const label = assistant.querySelector(".thinking-txt");
+              if (label) label.textContent = "Vision timed out — answering from text…";
+            }
           } finally {
             clearTimeout(visualTimer);
+            send.controller.signal.removeEventListener("abort", onSendAbort);
           }
-          stopTimer();
-          AppState.citationMap = data.citations || {};
-          body.classList.remove("streaming");
-          body.innerHTML = formatFinal(data.answer || "");
-          if (data.annotations && data.annotations.length && data.page) {
-            AppState.pdfCurrentSourceId = data.page.source_id;
-            PDFViewer.showAnnotatedPage(AppState.workspaceId, data.page.source_id, data.page.page_num, data.annotations);
-          } else if (data.page) {
-            PDFViewer.loadStream(AppState.workspaceId, data.page.source_id).then(() => PDFViewer.jumpToPage(data.page.page_num));
+          if (send.superseded) return;
+          if (!visualFailed) {
+            stopTimer();
+            AppState.citationMap = data.citations || {};
+            body.classList.remove("streaming");
+            body.innerHTML = formatFinal(data.answer || "");
+            if (data.annotations && data.annotations.length && data.page) {
+              AppState.pdfCurrentSourceId = data.page.source_id;
+              PDFViewer.showAnnotatedPage(AppState.workspaceId, data.page.source_id, data.page.page_num, data.annotations);
+            } else if (data.page) {
+              PDFViewer.loadStream(AppState.workspaceId, data.page.source_id).then(() => PDFViewer.jumpToPage(data.page.page_num));
+            }
+          } else {
+            armFirstTokenTimer(); // fresh 120s deadline for the text stream's first token
+            await streamAnswer(question, body, stopTimer, container, send);
           }
         } else {
-          await streamAnswer(question, body, stopTimer, container);
+          await streamAnswer(question, body, stopTimer, container, send);
         }
       } catch (err) {
-        // The visual path can fail (vision model unset/erroring) or time out
-        // (aborted above after 90s); fall back to a normal grounded text
-        // answer instead of leaving a raw error or a permanent spinner.
-        if (err && err.name === "AbortError") {
-          const label = assistant.querySelector(".thinking-txt");
-          if (label) label.textContent = "Vision timed out — answering from text…";
-        }
-        try {
-          await streamAnswer(question, body, stopTimer, container);
-        } catch (err2) {
-          stopTimer();
-          body.classList.remove("streaming");
-          body.innerHTML = `<p class="error-text">${escapeHtml(String(err2.message || err2))}</p>`;
-        }
+        // Superseded sends stay silent — the newer question owns the UI now.
+        // Anything else (network error, both paths stalled) becomes an honest
+        // error bubble instead of a permanent spinner.
+        if (send.superseded) return;
+        stopTimer();
+        body.classList.remove("streaming");
+        const msg = send.timedOut
+          ? "The model didn't respond within 2 minutes. Try again, or switch to the fast model."
+          : String((err && err.message) || err);
+        body.innerHTML = `<p class="error-text">${escapeHtml(msg)}</p>`;
+      } finally {
+        send.settled = true;
+        clearTimeout(send.firstTokenTimer);
+        if (activeSend === send) activeSend = null;
       }
       container.scrollTop = container.scrollHeight;
     };
