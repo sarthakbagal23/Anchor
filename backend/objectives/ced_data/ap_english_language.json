@@ -1,0 +1,127 @@
+{
+  "course": "AP English Language and Composition",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Rhetorical Analysis",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Rhetorical Analysis",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how ethos, logos, pathos, tone, and diction shape a nonfiction argument."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze an author's rhetorical choices and evaluate their effectiveness on an audience."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Argumentation & Synthesis",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Argumentation & Synthesis",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain what makes a defensible claim and how sources support, qualify, or refute it."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write an argument essay that synthesizes multiple sources into a coherent position."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Evidence & Reasoning",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Evidence & Reasoning",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain types of evidence and common reasoning fallacies in arguments."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate an argument's reasoning and identify where evidence fails to support claims."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Style & Syntax Analysis",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Style & Syntax Analysis",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how sentence structure, syntax, and style choices create emphasis and tone."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze prose style in speeches, journalism, and essays at the sentence level."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Reading Nonfiction",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Reading Nonfiction",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how context, purpose, and audience shape nonfiction texts."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare how different authors treat the same subject for different audiences."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Composition & Organization",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Composition & Organization",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain thesis development, evidence integration, and paragraph organization."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Revise drafts for line of reasoning, organization, and control of language."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

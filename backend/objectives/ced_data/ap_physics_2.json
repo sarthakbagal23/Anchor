@@ -1,0 +1,127 @@
+{
+  "course": "AP Physics 2",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Thermodynamics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Thermodynamics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the ideal gas law, heat transfer, and the laws of thermodynamics including entropy."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze PV diagrams and calculate work, heat, and efficiency of heat engines."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Electric Fields, Potential & Capacitance",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Electric Fields, Potential & Capacitance",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain electric force, field, potential, and how capacitors store energy."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate fields, potentials, and equivalent capacitance for charge arrangements."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Circuits",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Circuits",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain current, resistance, and how series and parallel networks divide voltage and current."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve circuit problems with Ohm's and Kirchhoff's rules and analyze RC charging behavior."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Magnetism & Induction",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Magnetism & Induction",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain magnetic forces on charges and currents and Faraday's law of induction."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Determine induced EMF and current direction using Lenz's law."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Waves & Optics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Waves & Optics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain interference, diffraction, refraction, and image formation by lenses and mirrors."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve double-slit, thin-film, and geometric-optics problems with ray and wave models."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Modern Physics Intro",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Modern Physics Intro",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the photoelectric effect, atomic spectra, and wave-particle duality."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate photon energies and interpret spectral evidence for quantized levels."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

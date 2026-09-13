@@ -1,0 +1,127 @@
+{
+  "course": "AP Comparative Government & Politics",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Political Systems & Regimes",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Political Systems & Regimes",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how democracies and authoritarian regimes differ in legitimacy, participation, and power."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Classify regimes using institutional and behavioral evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "UK, Russia, China, Iran, Nigeria, Mexico: Institutions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "UK, Russia, China, Iran, Nigeria, Mexico: Institutions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how the six core countries organize constitutions, executives, legislatures, and judiciaries."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare executive-legislative relations across parliamentary, presidential, and hybrid systems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Parties & Electoral Systems",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Parties & Electoral Systems",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how party systems and electoral rules shape representation in the six countries."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict how electoral-system changes would alter party competition."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Political Culture & Socialization",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Political Culture & Socialization",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how history, religion, and ethnicity shape political culture and participation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze survey and demographic evidence about legitimacy and trust."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Political & Economic Change",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Political & Economic Change",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain democratization, revolution, and market transitions in comparative cases."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate why similar shocks produce different regime outcomes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Globalization's Effects",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Globalization's Effects",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how trade, migration, and international organizations constrain and empower states."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze a global issue through the institutions of two core countries."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

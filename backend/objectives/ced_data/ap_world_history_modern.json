@@ -1,0 +1,187 @@
+{
+  "course": "AP World History: Modern",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Global Tapestries 1200-1450",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Global Tapestries 1200-1450",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how Dar al-Islam, the Mongols, and American civilizations organized states and belief systems."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare governance and cultural developments across Afro-Eurasia and the Americas before 1450."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Networks of Exchange",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Networks of Exchange",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how Silk Roads, Indian Ocean trade, and the Black Death connected and disrupted societies."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze causes and effects of expanding exchange networks on states and cultures."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Land-Based Empires",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Land-Based Empires",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how Ottoman, Safavid, Mughal, Qing, and Russian empires consolidated power."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare imperial administration, belief systems, and resistance across land empires."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Transoceanic Interconnections",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Transoceanic Interconnections",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Columbian exchange, silver flows, and the rise of coerced labor systems."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate how maritime empires transformed economies and societies on four continents."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Revolutions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Revolutions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Enlightenment ideas, the Haitian Revolution, and the origins of industrialization."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how revolutions challenged old orders and spread new ideologies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Consequences of Industrialization",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Consequences of Industrialization",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain imperialism, new labor systems, and resistance to industrial-era empires."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate economic and cultural motives behind nineteenth-century imperial expansion."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Global Conflict",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Global Conflict",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the causes and global scale of WWI, WWII, and the early Cold War."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare how total wars mobilized societies and redrew the world order."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Cold War & Decolonization",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Cold War & Decolonization",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain decolonization movements and Cold War rivalries in Asia, Africa, and Latin America."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how newly independent states navigated superpower competition."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Globalization 1991-Present",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Globalization 1991-Present",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how technology, trade liberalization, and migration accelerated globalization."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate debates over globalization's benefits, costs, and cultural effects."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

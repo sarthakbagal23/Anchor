@@ -1,0 +1,127 @@
+{
+  "course": "AP Macroeconomics",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Basic Economic Concepts",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Basic Economic Concepts",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain scarcity, opportunity cost, PPF, and supply and demand."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze market outcomes and shifts using supply-demand diagrams."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Economic Indicators",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Economic Indicators",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain GDP, CPI, and unemployment and what each one misses."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate real GDP, inflation rates, and labor-market measures from data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "National Income & Price Determination",
+      "topics": [
+        {
+          "number": 1,
+          "title": "National Income & Price Determination",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the AD-AS model and how shocks move output and prices."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict short-run and long-run effects of demand and supply shocks."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Financial Sector",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Financial Sector",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain money creation, banks, monetary policy, and loanable funds."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Trace how central-bank actions change interest rates and investment."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Stabilization Policies",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Stabilization Policies",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain fiscal policy, multipliers, and automatic stabilizers."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Recommend fiscal responses to gaps using multiplier reasoning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Growth & Open Economy",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Growth & Open Economy",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain long-run growth drivers, trade, and exchange-rate determination."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how deficits, tariffs, and capital flows affect the economy."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

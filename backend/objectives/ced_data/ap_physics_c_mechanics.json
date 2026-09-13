@@ -1,0 +1,147 @@
+{
+  "course": "AP Physics C: Mechanics",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Kinematics with Calculus",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Kinematics with Calculus",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain position, velocity, and acceleration as derivatives and integrals of each other."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve motion problems by differentiating and integrating, including non-constant acceleration."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Newton's Laws",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Newton's Laws",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain dynamics with calculus-based force analysis including drag and variable forces."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Set up and solve differential relationships in Newton's second law problems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Work, Energy & Power",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Work, Energy & Power",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain work as a line integral and power as the rate of energy transfer."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply conservation of energy with calculus-based potential functions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Momentum",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Momentum",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain impulse as an integral and momentum conservation in collisions."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve variable-mass and multi-body collision problems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Rotation",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Rotation",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain torque, moment of inertia via integration, and angular momentum."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve rotational dynamics problems using calculus where mass distributions vary."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Gravitation",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Gravitation",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Newton's law of gravitation, orbital motion, and gravitational potential energy."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate orbital speeds, periods, and escape velocities."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Oscillations",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Oscillations",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain simple harmonic motion as a second-order differential equation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve SHM systems including pendulums and springs with calculus methods."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

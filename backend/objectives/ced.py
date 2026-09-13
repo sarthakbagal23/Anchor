@@ -27,6 +27,86 @@ CED_DATA_DIR = Path(__file__).parent / "ced_data"
 # Registered CED manifests: course title -> manifest file.
 _CED_COURSES: dict[str, str] = {
     "AP Statistics": "ap_statistics.json",
+    # Math & Computer Science
+    "AP Precalculus": "ap_precalculus.json",
+    "AP Calculus AB": "ap_calculus_ab.json",
+    "AP Calculus BC": "ap_calculus_bc.json",
+    "AP Computer Science A": "ap_computer_science_a.json",
+    "AP Computer Science Principles": "ap_computer_science_principles.json",
+    # Sciences
+    "AP Biology": "ap_biology.json",
+    "AP Chemistry": "ap_chemistry.json",
+    "AP Environmental Science": "ap_environmental_science.json",
+    "AP Physics 1": "ap_physics_1.json",
+    "AP Physics 2": "ap_physics_2.json",
+    "AP Physics C: Mechanics": "ap_physics_c_mechanics.json",
+    "AP Physics C: Electricity & Magnetism": "ap_physics_c_em.json",
+    # History & Social Sciences
+    "AP World History: Modern": "ap_world_history_modern.json",
+    "AP United States History": "ap_us_history.json",
+    "AP European History": "ap_european_history.json",
+    "AP Human Geography": "ap_human_geography.json",
+    "AP Psychology": "ap_psychology.json",
+    "AP United States Government & Politics": "ap_us_government.json",
+    "AP Comparative Government & Politics": "ap_comparative_government.json",
+    "AP African American Studies": "ap_african_american_studies.json",
+    "AP Macroeconomics": "ap_macroeconomics.json",
+    "AP Microeconomics": "ap_microeconomics.json",
+    # English & Arts
+    "AP English Language & Composition": "ap_english_language.json",
+    "AP English Literature & Composition": "ap_english_literature.json",
+    "AP Art History": "ap_art_history.json",
+    "AP Music Theory": "ap_music_theory.json",
+    "AP Studio Art": "ap_studio_art.json",
+    # World Languages (one shared framework file for all six)
+    "AP Spanish Language & Culture": "ap_world_language_culture.json",
+    "AP French Language & Culture": "ap_world_language_culture.json",
+    "AP German Language & Culture": "ap_world_language_culture.json",
+    "AP Italian Language & Culture": "ap_world_language_culture.json",
+    "AP Chinese Language & Culture": "ap_world_language_culture.json",
+    "AP Japanese Language & Culture": "ap_world_language_culture.json",
+    "AP Spanish Literature & Culture": "ap_spanish_literature.json",
+    "AP Latin": "ap_latin.json",
+    # Capstone
+    "AP Seminar": "ap_seminar.json",
+    "AP Research": "ap_research.json",
+}
+
+# Casual titles students actually type, normalized (lowercase, single spaces).
+# Checked after exact match, so these can never shadow a real course title.
+_COURSE_ALIASES: dict[str, str] = {
+    "ap stats": "AP Statistics",
+    "ap calc ab": "AP Calculus AB",
+    "ap calc bc": "AP Calculus BC",
+    "ap csa": "AP Computer Science A",
+    "ap csp": "AP Computer Science Principles",
+    "ap bio": "AP Biology",
+    "ap chem": "AP Chemistry",
+    "ap env sci": "AP Environmental Science",
+    "ap environmental science": "AP Environmental Science",
+    "ap phys 1": "AP Physics 1",
+    "ap phys 2": "AP Physics 2",
+    "apush": "AP United States History",
+    "ap us history": "AP United States History",
+    "ap world": "AP World History: Modern",
+    "ap world history": "AP World History: Modern",
+    "ap euro": "AP European History",
+    "ap hug": "AP Human Geography",
+    "ap human geo": "AP Human Geography",
+    "ap psych": "AP Psychology",
+    "ap gov": "AP United States Government & Politics",
+    "ap government": "AP United States Government & Politics",
+    "ap comp gov": "AP Comparative Government & Politics",
+    "ap macro": "AP Macroeconomics",
+    "ap micro": "AP Microeconomics",
+    "ap lang": "AP English Language & Composition",
+    "ap lit": "AP English Literature & Composition",
+    "ap spanish lang": "AP Spanish Language & Culture",
+    "ap french lang": "AP French Language & Culture",
+    "ap german lang": "AP German Language & Culture",
+    "ap italian lang": "AP Italian Language & Culture",
+    "ap chinese lang": "AP Chinese Language & Culture",
+    "ap japanese lang": "AP Japanese Language & Culture",
 }
 
 
@@ -51,11 +131,17 @@ _AP_HINT_RE = re.compile(
 
 
 def infer_course_key(title: str) -> str | None:
-    """Best-effort: does this DB course title correspond to a CED manifest?"""
+    """Best-effort: does this DB course title correspond to a CED manifest?
+
+    Order: exact title match, then the casual-alias table (apush, ap csa, ...),
+    then the "AP<subject>" squished form. Aliases never shadow exact titles."""
     norm = re.sub(r"\s+", " ", (title or "")).strip().lower()
     for course in _CED_COURSES:
         if norm == course.lower():
             return course
+    if norm in _COURSE_ALIASES:
+        return _COURSE_ALIASES[norm]
+    for course in _CED_COURSES:
         if norm.casefold() == f"ap{course.replace('AP ', '').lower()}":
             return course
     return None
@@ -144,10 +230,14 @@ def apply_ced_to_source(
 
 
 def find_ced_unit(manifest: dict, unit_title: str) -> tuple[int, dict] | None:
-    """Map a DB unit title to a CED unit by ("Unit N" prefix, then title match)."""
+    """Map a DB unit title to a CED unit by ("Unit N" prefix, then title match).
+
+    The number branch requires actual digits (a bare "Unit" with no number must
+    not match), with a word boundary so titles like "2D Arrays" don't map to
+    unit 2."""
     if not unit_title:
         return None
-    m = re.match(r"(?:^|Unit\s+)(\d+)?", unit_title.strip(), re.IGNORECASE)
+    m = re.match(r"(?:Unit\s+)?(\d+)\b", unit_title.strip(), re.IGNORECASE)
     cand_by_num = {}
     for u in manifest["units"]:
         cand_by_num[u["number"]] = u
@@ -269,6 +359,14 @@ if __name__ == "__main__":
     assert route_unit(store, unit_id) == "ced_import"
     assert route_unit(store, unit2) == "extracted"
     assert infer_course_key("AP Statistics") == "AP Statistics"
+
+    # unit-number mapping must work for bare "Unit N" titles (regression: the
+    # old regex matched empty at ^ so the number branch never fired and only
+    # full CED titles mapped)
+    stats_manifest = _load_manifest("AP Statistics")
+    assert find_ced_unit(stats_manifest, "Unit 3")[0] == 3
+    assert find_ced_unit(stats_manifest, "Unit 1: Exploring One-Variable Data")[0] == 1
+    assert find_ced_unit(stats_manifest, "Unit 99") is None
 
     created = import_ced_objectives(store, unit_id, "AP Statistics")
     assert len(created) == 11, f"expected Unit 1 objectives, got {len(created)}"

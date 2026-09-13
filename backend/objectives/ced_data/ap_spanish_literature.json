@@ -1,0 +1,127 @@
+{
+  "course": "AP Spanish Literature and Culture",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Genres Across the Required List",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Genres Across the Required List",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how novela, poes\u00eda, teatro, and ensayo each make meaning differently."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze required-list works using genre-appropriate tools."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Literary Analysis Tools",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Literary Analysis Tools",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain figuras ret\u00f3ricas, narrative voice, and historical context in literary analysis."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write analyses that connect devices and context to interpretation."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Medieval & Siglo de Oro",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Medieval & Siglo de Oro",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain medieval and Golden Age concerns: honor, faith, and empire."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze works from these periods in their historical context."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Romanticismo, Realismo & Naturalismo",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Romanticismo, Realismo & Naturalismo",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain nineteenth-century movements from emotion to social observation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare how each movement represents reality."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Generaci\u00f3n del 27",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Generaci\u00f3n del 27",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Generation of '27's blend of tradition and avant-garde."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze representative poems for form and imagery."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Boom Latinoamericano",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Boom Latinoamericano",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain magical realism and the Boom's global impact."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze Boom narratives for time, voice, and the marvelous real."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

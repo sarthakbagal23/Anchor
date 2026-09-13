@@ -1,0 +1,127 @@
+{
+  "course": "AP African American Studies",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Origins of the African Diaspora",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Origins of the African Diaspora",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain African societies before the slave trade and the Middle Passage experience."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how diaspora origins shaped culture and resistance."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Freedom, Enslavement & Resistance",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Freedom, Enslavement & Resistance",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain slavery as a labor system and the everyday and organized forms of resistance."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate enslaved people's agency using primary sources."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Reconstruction & Jim Crow",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Reconstruction & Jim Crow",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Reconstruction's gains, its violent rollback, and the Jim Crow order."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how law and terror together enforced segregation."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Movements for Equality",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Movements for Equality",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain civil rights and Black Power strategies, organizations, and achievements."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare movement tactics and debate their effectiveness."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Arts, Science & Culture",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Arts, Science & Culture",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain African American contributions to music, literature, science, and visual arts."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Interpret cultural works as historical evidence and political expression."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Contemporary Black Life",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Contemporary Black Life",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain present-day patterns in inequality, identity, and political life."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate data and debates on reparations, representation, and justice."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "course": "AP United States History",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Pre-Columbian Americas & Exchange 1491-1607",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Pre-Columbian Americas & Exchange 1491-1607",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Native societies before contact and how the Columbian exchange transformed both hemispheres."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare Spanish, French, and English colonial aims and Native responses."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Colonization & Slavery 1607-1754",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Colonization & Slavery 1607-1754",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain regional colonial economies, the growth of slavery, and mercantilism."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how labor systems and British policy shaped colonial identity."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Revolution & the Republic 1754-1800",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Revolution & the Republic 1754-1800",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the causes of the Revolution and the debates behind the Constitution."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare Federalist and Republican visions of the new nation."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Market Revolution & Reform 1800-1848",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Market Revolution & Reform 1800-1848",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the market revolution, Jacksonian democracy, and antebellum reform movements."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate how economic change expanded and limited democracy."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Expansion, Slavery Crisis & Civil War 1844-1877",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Expansion, Slavery Crisis & Civil War 1844-1877",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain westward expansion, sectional conflict over slavery, the Civil War, and Reconstruction."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze why compromise failed and assess Reconstruction's achievements and rollback."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Gilded Age & Industrialization 1865-1898",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Gilded Age & Industrialization 1865-1898",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain industrialization, big business, immigration, and the Populist response."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate how industrial capitalism reshaped labor, cities, and politics."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Progressivism to WWII 1890-1945",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Progressivism to WWII 1890-1945",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain progressivism, imperialism, WWI, the 1920s, the Depression, the New Deal, and WWII."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how crises expanded federal power across this half-century."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Cold War & Civil Rights 1945-1980",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Cold War & Civil Rights 1945-1980",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Cold War containment, 1950s suburbia, and the civil rights and 1960s movements."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate the successes and limits of liberal reform at home and abroad."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Reagan to the Present 1980-Now",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Reagan to the Present 1980-Now",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Reagan era, 9/11, globalization, and political polarization."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze continuity and change in American politics since 1980."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

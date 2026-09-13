@@ -1,0 +1,147 @@
+{
+  "course": "AP Computer Science Principles",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "How the Internet Works",
+      "topics": [
+        {
+          "number": 1,
+          "title": "How the Internet Works",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how protocols, packets, and IP/DNS cooperate to deliver data across networks."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Trace how data is broken into packets, routed redundantly, and reassembled."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Binary & Data Representation",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Binary & Data Representation",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how bits represent numbers, text, images, and sound, including overflow and rounding effects."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Convert between binary and decimal and evaluate how compression trades size for quality."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Algorithms & Programming",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Algorithms & Programming",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain sequencing, selection, iteration, and how algorithms express them."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write and combine procedures with parameters and return values to solve problems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Abstraction",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Abstraction",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how abstraction hides detail and manages complexity in programs and models."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Use lists and procedures as abstractions and explain what details each one hides."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Cybersecurity & Cryptography",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Cybersecurity & Cryptography",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how encryption, authentication, and key exchange protect data and where they fail."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate phishing, malware, and other attack scenarios and the defenses against them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Data Analysis & Visualization",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Data Analysis & Visualization",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how large data sets reveal patterns and how visualizations can clarify or mislead."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Use computational tools to clean data, find correlations, and communicate findings with charts."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Computing's Societal Impacts",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Computing's Societal Impacts",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain beneficial and harmful effects of computing, including bias and the digital divide."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze a computing innovation's trade-offs for access, privacy, and equity."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

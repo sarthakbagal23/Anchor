@@ -1,0 +1,147 @@
+{
+  "course": "AP Physics 1",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Kinematics in 1D & 2D",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Kinematics in 1D & 2D",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain displacement, velocity, and acceleration and how graphs of motion relate to each other."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve projectile and constant-acceleration problems using kinematic equations."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Forces & Newton's Laws",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Forces & Newton's Laws",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain inertia and how net force determines acceleration in Newton's three laws."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Draw free-body diagrams and solve dynamics problems including friction and inclined planes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Work, Energy & Power",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Work, Energy & Power",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain work, kinetic and potential energy, and conservation of mechanical energy."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply work-energy principles and calculate power in physical systems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Momentum & Collisions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Momentum & Collisions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain impulse, momentum conservation, and elastic versus inelastic collisions."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve collision and explosion problems using conservation of momentum."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Rotational Motion",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Rotational Motion",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain torque, rotational inertia, and angular momentum and their linear analogs."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve problems involving torque balance, rotational kinematics, and angular momentum conservation."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Simple Harmonic Motion",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Simple Harmonic Motion",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain restoring forces and energy exchange in springs and pendulums."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate periods and predict motion for oscillating systems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Fluids",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Fluids",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain density, pressure, buoyancy, and Bernoulli's principle in static and moving fluids."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve buoyancy and fluid-flow problems using Archimedes' principle and continuity."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

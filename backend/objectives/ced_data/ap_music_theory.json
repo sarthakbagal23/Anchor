@@ -1,0 +1,127 @@
+{
+  "course": "AP Music Theory",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Pitch & Rhythm Fundamentals",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Pitch & Rhythm Fundamentals",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain scales, key signatures, meter, and rhythmic notation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Notate and identify scales, keys, and meters from notation and by ear."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Intervals & Chord Construction",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Intervals & Chord Construction",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain interval qualities and how triads and seventh chords are built."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Spell and identify intervals and chords in any key."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Four-Part Voice Leading",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Four-Part Voice Leading",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain SATB part-writing rules including doubling and voice independence."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Realize figured bass and harmonize melodies following voice-leading rules."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Harmonic Progression & Analysis",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Harmonic Progression & Analysis",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain functional harmony and Roman numeral analysis of progressions."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze chord progressions and cadences in real repertoire."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Non-Chord Tones & Form",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Non-Chord Tones & Form",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain passing tones, neighbors, suspensions, and common formal structures."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Label non-chord tones and map the form of a short piece."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Aural Skills",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Aural Skills",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain strategies for melodic and rhythmic dictation and sight-singing."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Dictate melodies and rhythms by ear and sight-sing diatonic lines."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

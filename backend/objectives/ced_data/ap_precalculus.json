@@ -1,0 +1,179 @@
+{
+  "course": "AP Precalculus",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Polynomial & Rational Functions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Polynomial & Rational Functions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Identify key features of polynomial functions including degree, leading coefficient, end behavior, and zeros."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Construct and interpret graphs of polynomial functions from factored and standard forms."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Solve polynomial and rational inequalities and interpret slant asymptotes of rational functions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Exponential & Logarithmic Functions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Exponential & Logarithmic Functions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how exponential functions model growth and decay using initial value and growth factor."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate and rewrite logarithmic expressions using log properties to solve exponential equations."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Construct and interpret graphs of exponential and logarithmic functions including transformations."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Trigonometric Functions & Identities",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Trigonometric Functions & Identities",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how the unit circle defines sine, cosine, and tangent for all real inputs."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Graph trigonometric functions and describe amplitude, period, phase shift, and midline."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Verify trigonometric identities and solve trigonometric equations over a given interval."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Polar Coordinates",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Polar Coordinates",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how points and curves are represented with polar coordinates and convert between polar and rectangular forms."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Graph polar curves including circles, rose curves, and lima\u00e7ons."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Parametric Functions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Parametric Functions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how parametric equations describe motion with a shared parameter."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Graph parametric curves and eliminate the parameter to find rectangular equivalents."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Vectors",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Vectors",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain vector magnitude and direction and how vectors model displacement and force."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Perform vector operations including addition, scalar multiplication, and dot products."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Matrices",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Matrices",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how matrices organize data and represent systems of equations."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Perform matrix operations and use matrices to solve linear systems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Sequences & Series",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Sequences & Series",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Distinguish arithmetic from geometric sequences using explicit and recursive formulas."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate finite sums and determine convergence of infinite geometric series."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

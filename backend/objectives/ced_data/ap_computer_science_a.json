@@ -1,0 +1,159 @@
+{
+  "course": "AP Computer Science A",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Java Primitives, Classes & Objects",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Java Primitives, Classes & Objects",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how primitive types, variables, and objects store and represent data in Java."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write expressions using casting, operators, and String methods to manipulate data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Conditionals & Iteration",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Conditionals & Iteration",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how Boolean expressions control program flow."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write if/else chains and nested conditionals to implement decisions."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Write while and for loops, including nested loops, to repeat processes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Writing Classes & OOP",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Writing Classes & OOP",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain encapsulation and how constructors and methods define object behavior."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Design classes with instance variables, constructors, accessors, and mutators."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Apply inheritance, polymorphism, and interfaces to extend and override behavior."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Arrays & ArrayLists",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Arrays & ArrayLists",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how arrays and ArrayLists store ordered collections and how they differ."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Traverse, insert into, and remove from arrays and ArrayLists without index errors."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "2D Arrays",
+      "topics": [
+        {
+          "number": 1,
+          "title": "2D Arrays",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain row-major traversal of two-dimensional arrays."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write nested-loop algorithms that process rows, columns, and diagonals of 2D arrays."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Recursion",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Recursion",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain base cases and recursive calls and how the call stack unwinds."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write recursive methods for problems like factorial, string processing, and traversals."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Searching & Sorting",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Searching & Sorting",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the efficiency trade-offs of sequential versus binary search."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Implement binary search on sorted data."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Implement selection, insertion, and merge sorts and compare their performance."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

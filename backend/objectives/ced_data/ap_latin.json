@@ -1,0 +1,127 @@
+{
+  "course": "AP Latin",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Caesar: De Bello Gallico",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Caesar: De Bello Gallico",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Caesar's aims, style, and portrait of Gaul and its peoples."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Translate and analyze required passages of De Bello Gallico."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Vergil: Aeneid",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Vergil: Aeneid",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Aeneid's themes of duty, fate, and empire."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Translate and analyze required passages with attention to poetic devices."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Translation & Sight Reading",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Translation & Sight Reading",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain strategies for rendering unseen Latin accurately under time."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Sight-translate unfamiliar passages using grammar and context clues."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Grammar & Syntax",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Grammar & Syntax",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain subjunctive uses, gerunds, gerundives, and complex clause structures."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Parse and explain the syntax of authentic sentences."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Scansion",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Scansion",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain dactylic hexameter and how meter shapes meaning."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Scan lines of Vergil marking feet, elisions, and caesurae."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Culture, History & Rhetoric",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Culture, History & Rhetoric",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Roman history, mythology, and rhetorical devices behind the texts."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Connect literary passages to their cultural and historical context."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

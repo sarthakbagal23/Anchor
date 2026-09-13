@@ -1,0 +1,167 @@
+{
+  "course": "AP Biology",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Chemistry of Life",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Chemistry of Life",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how water's polarity and hydrogen bonding support life and how macromolecules are built from monomers."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Identify carbohydrates, lipids, proteins, and nucleic acids from structure and predict their functions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Cell Structure & Membranes",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Cell Structure & Membranes",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how organelles compartmentalize function and how membranes regulate transport."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict how solute concentration gradients drive osmosis and water potential changes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Cellular Energetics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Cellular Energetics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how photosynthesis and cellular respiration convert energy through electron transport chains."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare energy yields of respiration and fermentation and interpret related experimental data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Cell Communication & the Cell Cycle",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Cell Communication & the Cell Cycle",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how signal transduction pathways amplify messages and how the cell cycle is regulated."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how disruptions in checkpoints or signaling lead to uncontrolled growth and cancer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Heredity & Mendelian Genetics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Heredity & Mendelian Genetics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain segregation, independent assortment, and how meiosis generates genetic variation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve monohybrid, dihybrid, and chi-square cross problems and interpret pedigrees."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Gene Expression & Regulation",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Gene Expression & Regulation",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the central dogma and how gene expression is regulated in prokaryotes and eukaryotes."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict how mutations and regulatory changes alter protein function and phenotype."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Natural Selection & Population Genetics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Natural Selection & Population Genetics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how natural selection, drift, and gene flow change allele frequencies over time."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply the Hardy-Weinberg equation to test whether a population is evolving."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Ecology",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Ecology",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain energy flow through trophic levels and factors that regulate population dynamics."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze ecosystem data to predict effects of disturbances on biodiversity and stability."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

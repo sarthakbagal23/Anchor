@@ -1,0 +1,207 @@
+{
+  "course": "AP Chemistry",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Atomic Structure & Periodic Trends",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Atomic Structure & Periodic Trends",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain electron configuration, Coulombic attraction, and periodic trends in size, ionization energy, and electronegativity."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict element behavior from position on the periodic table and justify with shell structure."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Molecular Geometry & Bonding",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Molecular Geometry & Bonding",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain VSEPR shapes, bond polarity, and hybridization in covalent molecules."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Draw Lewis structures and assign geometry and hybridization to molecules and ions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Intermolecular Forces & States of Matter",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Intermolecular Forces & States of Matter",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how London forces, dipole interactions, and hydrogen bonding determine properties of gases, liquids, and solids."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Rank substances by boiling point and solubility and interpret gas-law and phase-diagram data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Reactions, Stoichiometry & Solutions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Reactions, Stoichiometry & Solutions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain precipitation, acid-base, and redox reactions at the particulate level."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Perform stoichiometric, limiting-reactant, titration, and solution-concentration calculations."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Thermochemistry",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Thermochemistry",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain enthalpy, Hess's law, and how calorimetry measures heat flow."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate reaction enthalpies from formation data, bond energies, and calorimetry results."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Kinetics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Kinetics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how concentration, temperature, and catalysts affect rate through collision theory and mechanisms."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Determine rate laws, orders, and rate constants from experimental data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Equilibrium",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Equilibrium",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain dynamic equilibrium and how Le Ch\u00e2telier's principle predicts shifts."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate Kc, Kp, and equilibrium concentrations and predict shift direction from Q."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Acids & Bases",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Acids & Bases",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain strong versus weak acids and bases, conjugate pairs, and buffer action."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate pH of solutions and buffers and interpret titration curves."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Thermodynamics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Thermodynamics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain entropy, Gibbs free energy, and when processes are spontaneous."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict spontaneity and equilibrium favorability from enthalpy and entropy signs and values."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "title": "Electrochemistry",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Electrochemistry",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain galvanic versus electrolytic cells, standard potentials, and Faraday's law."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate cell potentials, apply the Nernst equation, and predict electrolysis products."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

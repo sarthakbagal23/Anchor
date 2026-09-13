@@ -1,0 +1,207 @@
+{
+  "course": "AP Psychology",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Biological Bases",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Biological Bases",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain neurons, neurotransmitters, brain structures, and split-brain research."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict behavioral effects of brain lesions, drugs, and nervous-system divisions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Sensation & Perception",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Sensation & Perception",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain vision, hearing, Gestalt principles, and depth cues."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Distinguish sensation from perception in classic illusions and thresholds."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Learning",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Learning",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain classical conditioning, operant conditioning, and observational learning."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply conditioning principles to predict and shape behavior."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Memory",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Memory",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain encoding, storage models, retrieval, and causes of forgetting."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Recommend study strategies grounded in memory research."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Cognition",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Cognition",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain problem-solving approaches, language development, and theories of intelligence."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze reasoning errors, biases, and intelligence-test validity."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Development",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Development",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Piaget's, Erikson's, Kohlberg's stages and attachment theory."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply developmental theories to predict behavior at different ages."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Motivation & Emotion",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Motivation & Emotion",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Maslow's hierarchy, drive-reduction, and major theories of emotion."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze motivated behavior using competing theoretical lenses."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Personality",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Personality",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Freud's theory, trait theory, and humanistic approaches to personality."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare how each perspective assesses and explains individual differences."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Clinical Psychology",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Clinical Psychology",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain DSM categories for anxiety, mood, and schizophrenia and major therapy approaches."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Match symptoms to disorders and evaluate treatment options."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "title": "Social Psychology",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Social Psychology",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain conformity, obedience, attribution, and prejudice research."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict behavior in group settings using classic social-psychology findings."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

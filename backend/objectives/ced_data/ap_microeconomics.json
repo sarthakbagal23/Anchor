@@ -1,0 +1,127 @@
+{
+  "course": "AP Microeconomics",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Supply & Demand",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Supply & Demand",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain market equilibrium and how shifts create surpluses and shortages."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Predict price and quantity effects of simultaneous shifts."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Elasticity",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Elasticity",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain price, income, and cross elasticity and what they reveal about goods."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate elasticities and predict revenue and tax-incidence effects."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Consumer Choice & Utility",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Consumer Choice & Utility",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain diminishing marginal utility and utility-maximizing choice."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve consumer-choice problems with budget constraints."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Costs of Production",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Costs of Production",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain fixed, variable, marginal, and average costs and their curves."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Derive cost curves and find efficient output levels."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Market Structures",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Market Structures",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain perfect competition, monopoly, monopolistic competition, and oligopoly, including game theory."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Determine profit-maximizing output and pricing under each structure."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Factor Markets & Market Failure",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Factor Markets & Market Failure",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain MRP-based hiring, externalities, public goods, and inequality."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Design corrective policies for externalities and evaluate equity-efficiency trade-offs."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

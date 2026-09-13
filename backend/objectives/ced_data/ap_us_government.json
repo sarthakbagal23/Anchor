@@ -1,0 +1,147 @@
+{
+  "course": "AP United States Government & Politics",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Constitutional Underpinnings",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Constitutional Underpinnings",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Articles' failures, federalism, and separation of powers with checks and balances."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how federalism creates tension and cooperation between levels of government."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Congress",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Congress",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain lawmaking, committees, and the incumbency advantage."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Trace how a bill becomes law and where it can stall."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Presidency & Bureaucracy",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Presidency & Bureaucracy",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain formal and informal executive powers and how the bureaucracy implements policy."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate presidential influence over domestic and foreign policy."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Judiciary",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Judiciary",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Marbury v. Madison, judicial review, and how courts make policy."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how precedent and ideology shape Supreme Court decisions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Civil Liberties & Civil Rights",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Civil Liberties & Civil Rights",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Bill of Rights, selective incorporation, and landmark equality cases."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply the 14th Amendment to evaluate government action on rights."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Political Participation",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Political Participation",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain voting behavior, parties, interest groups, and media influence."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze why turnout varies and how groups convert resources into influence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Elections & Campaigns",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Elections & Campaigns",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Electoral College and differences between primary and general campaigns."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate how campaign finance, polling, and media shape election outcomes."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

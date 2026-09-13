@@ -1,0 +1,187 @@
+{
+  "course": "AP World Language & Culture (shared framework)",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill. Shared framework: all AP world language & culture courses use the same three communication modes and six cultural themes.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Interpretive Communication",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Interpretive Communication",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain strategies for understanding articles, audio, and video in the target language."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Interpret authentic texts and media, identifying main ideas and supporting details."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Interpersonal Communication",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Interpersonal Communication",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how conversation, debate, and correspondence negotiate meaning between speakers."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Sustain spontaneous conversations and written exchanges with appropriate register."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Presentational Communication",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Presentational Communication",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how to structure cultural comparisons and persuasive presentations for an audience."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Deliver organized spoken and written presentations with cultural evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Families & Communities",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Families & Communities",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain family structures and community life across cultures."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare attitudes toward family and community in discussions and essays."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Personal & Public Identities",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Personal & Public Identities",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how language, heritage, and belonging shape identity."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Discuss identity topics using culturally appropriate expression."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Beauty & Aesthetics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Beauty & Aesthetics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain ideals of beauty and artistic expression across cultures."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze cultural products and their aesthetic values."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Science & Technology",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Science & Technology",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how technology and science affect daily life and communication."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Debate technology's effects using evidence from target-language sources."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Contemporary Life",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Contemporary Life",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain education, work, leisure, and travel in target cultures."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare daily life across cultures in speech and writing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Global Challenges",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Global Challenges",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain environmental, health, and economic challenges from multiple perspectives."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Propose and defend responses to a global issue with sourced evidence."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

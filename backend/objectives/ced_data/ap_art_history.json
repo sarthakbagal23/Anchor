@@ -1,0 +1,207 @@
+{
+  "course": "AP Art History",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Global Prehistory",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Global Prehistory",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how prehistoric art reflects survival, ritual, and early symbolic thought."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare prehistoric works across regions using form, function, and context."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Ancient Mediterranean",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Ancient Mediterranean",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Egyptian, Greek, and Roman art in relation to religion, politics, and ideals of the body."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Attribute classical works to cultures using style and iconography."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Early Europe & Colonial Americas",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Early Europe & Colonial Americas",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain medieval, Byzantine, and colonial art as expressions of faith and empire."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how conquest and conversion shaped visual culture in the Americas."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Later Europe & Americas",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Later Europe & Americas",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Renaissance through Modernist movements and what each one rejected."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Trace stylistic change across movements using specific works as evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Indigenous Americas",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Indigenous Americas",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Indigenous American art in its ceremonial and community contexts."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Interpret materials and motifs without imposing European categories."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Africa",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Africa",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain African art's roles in masquerade, memory, and spiritual practice."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how form and performance together create meaning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "West & Central Asia",
+      "topics": [
+        {
+          "number": 1,
+          "title": "West & Central Asia",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Islamic art's use of geometry, calligraphy, and architecture."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare sacred spaces across West and Central Asian traditions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "South & East Asia",
+      "topics": [
+        {
+          "number": 1,
+          "title": "South & East Asia",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Buddhist, Hindu, and East Asian traditions in sculpture, painting, and architecture."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Trace how religions traveled and transformed visual forms."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Pacific Cultures",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Pacific Cultures",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Oceanic art's ties to navigation, ancestry, and ritual exchange."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Interpret Pacific works through voyaging and community histories."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "title": "Global Contemporary",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Global Contemporary",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how contemporary artists address identity, migration, and globalization."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate how context changes the meaning of contemporary works."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

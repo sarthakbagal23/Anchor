@@ -1,0 +1,127 @@
+{
+  "course": "AP Physics C: Electricity & Magnetism",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Electrostatics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Electrostatics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Coulomb's law and how charge distributions create electric fields."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate fields using Coulomb's law and Gauss's law with symmetry."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Electric Potential & Capacitors",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Electric Potential & Capacitors",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain potential, potential energy, and capacitance in terms of field integrals."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compute potentials and equivalent capacitance, including dielectrics."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Circuits",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Circuits",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Kirchhoff's rules and time-dependent RC behavior from differential equations."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve multi-loop circuits and RC charging and discharging problems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Magnetic Fields",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Magnetic Fields",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the Biot-Savart law, Amp\u00e8re's law, and forces on moving charges and currents."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate magnetic fields for wires, loops, and solenoids."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Induction & Inductance",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Induction & Inductance",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Faraday's and Lenz's laws and energy storage in inductors."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve LR and LC circuit problems and determine induced currents."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Maxwell's Equations Overview",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Maxwell's Equations Overview",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how Maxwell's equations unify electricity, magnetism, and light."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Identify which Maxwell equation governs a given electromagnetic scenario."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

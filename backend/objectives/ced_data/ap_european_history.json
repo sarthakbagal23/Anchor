@@ -1,0 +1,187 @@
+{
+  "course": "AP European History",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Renaissance & Exploration",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Renaissance & Exploration",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how the Renaissance and overseas exploration transformed European states and worldviews."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze motives and consequences of early European expansion."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Reformation & Wars of Religion",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Reformation & Wars of Religion",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Luther's challenge, Calvinism, and how religious division fueled warfare."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate how the Reformation reshaped politics, culture, and state power."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Absolutism & Constitutionalism",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Absolutism & Constitutionalism",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain absolutist rule under Louis XIV versus constitutionalism in England."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare state-building strategies and resistance to them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Scientific Revolution & Enlightenment",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Scientific Revolution & Enlightenment",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how new science and Enlightenment thought challenged traditional authority."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how ideas moved from salons and societies into political change."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Industrial Revolution & Social Change",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Industrial Revolution & Social Change",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain industrialization's economic, urban, and class transformations."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate responses to industrial society from unions to new ideologies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Nationalism, 1848 & Imperialism",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Nationalism, 1848 & Imperialism",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the 1848 revolutions, unifications, and the new imperialism."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how nationalism both united and fractured Europe and its empires."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "WWI, Revolution & Interwar Extremism",
+      "topics": [
+        {
+          "number": 1,
+          "title": "WWI, Revolution & Interwar Extremism",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain WWI's causes, the Russian Revolution, and the rise of fascism and Stalinism."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate why democracy collapsed in some states and survived in others."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "WWII, Cold War & Decolonization",
+      "topics": [
+        {
+          "number": 1,
+          "title": "WWII, Cold War & Decolonization",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain WWII, Europe's Cold War division, and decolonization."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how war and bipolar rivalry reshaped European power."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Contemporary Europe",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Contemporary Europe",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain European integration, the USSR's collapse, and post-Cold War challenges."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate the EU project and Europe's role in a globalized world."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

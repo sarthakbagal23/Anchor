@@ -1,0 +1,199 @@
+{
+  "course": "AP Calculus BC",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Limits & Continuity",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Limits & Continuity",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain limits and continuity, including one-sided, infinite, and asymptotic behavior."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate limits analytically and classify discontinuities."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Derivatives",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Derivatives",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the derivative as a rate of change and linear approximation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply differentiation rules including chain rule and implicit differentiation."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Applications of Derivatives",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Applications of Derivatives",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how derivatives locate extrema and describe concavity."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve optimization and related-rates problems and apply the Mean Value Theorem."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Integrals & the Fundamental Theorem",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Integrals & the Fundamental Theorem",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain accumulation, Riemann sums, and the Fundamental Theorem of Calculus."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate integrals using antiderivatives and u-substitution."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Applications of Integration",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Applications of Integration",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain area, volume, and arc length as accumulation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate areas, volumes of revolution, and arc lengths."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Differential Equations",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Differential Equations",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain slope fields and separable differential equations."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve separable equations and model growth and decay, including logistic models."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Integration Techniques",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Integration Techniques",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain when integration by parts and partial fractions apply."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Integrate by parts and by partial fraction decomposition."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Evaluate improper integrals using limits."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Parametric, Polar & Vector Functions",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Parametric, Polar & Vector Functions",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain motion described by parametric, polar, and vector-valued functions."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Differentiate parametric and vector functions to find velocity, speed, and acceleration."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Calculate arc lengths and areas in polar and parametric form."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Series & Sequences",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Series & Sequences",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain convergence of sequences and series and the meaning of a Taylor polynomial."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply convergence tests including nth-term, integral, comparison, ratio, and alternating series tests."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Construct Taylor and Maclaurin series and determine intervals of convergence with error bounds."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

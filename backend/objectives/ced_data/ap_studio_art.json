@@ -1,0 +1,87 @@
+{
+  "course": "AP Studio Art",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Sustained Investigation",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Sustained Investigation",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how a guiding question develops across a portfolio of related works."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Document how inquiry deepens from early experiments to resolved pieces."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Materials & Techniques",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Materials & Techniques",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how material choices serve ideas in 2D, 3D, or drawing work."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Demonstrate skillful, intentional use of chosen materials and processes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Synthesis of Ideas",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Synthesis of Ideas",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how materials, processes, and ideas synthesize in finished work."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Revise work so concept and craft reinforce each other."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Critique & Reflection",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Critique & Reflection",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how critique and written reflection advance an investigation."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Use feedback and process documentation to guide revision decisions."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

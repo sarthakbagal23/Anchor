@@ -1,0 +1,187 @@
+{
+  "course": "AP Environmental Science",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Ecosystems & Energy Flow",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Ecosystems & Energy Flow",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain trophic levels, the 10% rule, biomes, and how energy and matter move through ecosystems."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate ecological efficiency and primary productivity from field data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Biodiversity & Ecosystem Services",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Biodiversity & Ecosystem Services",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain biodiversity levels, island biogeography, and the services ecosystems provide."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate threats to biodiversity and the effectiveness of conservation strategies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Populations & Carrying Capacity",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Populations & Carrying Capacity",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain exponential versus logistic growth, survivorship curves, and carrying capacity."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate population growth rates and doubling times and interpret age-structure diagrams."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Earth Systems & Plate Tectonics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Earth Systems & Plate Tectonics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain plate boundaries, the rock cycle, and how tectonics shapes landforms and hazards."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Relate boundary type to earthquakes, volcanoes, and soil formation."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Soil & Agriculture",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Soil & Agriculture",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain soil horizons, erosion causes, and trade-offs of pesticides, fertilizers, and GMOs."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Propose sustainable farming practices for a given erosion or pest scenario."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Water Resources & Pollution",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Water Resources & Pollution",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain aquifer depletion, eutrophication, and how wastewater is treated."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze water-quality indicators like dissolved oxygen and BOD to diagnose pollution sources."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Air Pollution & Climate Change",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Air Pollution & Climate Change",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the greenhouse effect, ozone depletion, and sources of smog and acid rain."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate mitigation and adaptation strategies using emissions and temperature data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Energy Resources",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Energy Resources",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how fossil fuels, nuclear power, and renewables generate electricity and their trade-offs."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Compare energy sources on cost, emissions, land use, and waste for a given region."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "title": "Land Use & Waste Management",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Land Use & Waste Management",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain urban sprawl, mining impacts, and the waste hierarchy from reduction to landfill."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Design a waste-reduction plan weighing recycling, composting, and disposal trade-offs."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "course": "AP English Literature and Composition",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Poetry & Prose Analysis",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Poetry & Prose Analysis",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how to read closely for meaning using textual evidence from poetry and prose."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write a literary analysis that defends an interpretation with well-chosen evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Narrative Voice, POV & Tone",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Narrative Voice, POV & Tone",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how narrator, point of view, and tone shape a reader's understanding."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how shifts in voice or tone change a passage's meaning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Characterization",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Characterization",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain direct and indirect characterization and how characters develop."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Trace a character's development and connect it to the work's larger meaning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Setting & Atmosphere",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Setting & Atmosphere",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how setting and atmosphere establish mood and constrain characters."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how a specific setting shapes plot and theme."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Imagery, Symbolism & Metaphor",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Imagery, Symbolism & Metaphor",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how images, symbols, and metaphors accumulate meaning across a work."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Interpret figurative language and connect it to theme with textual evidence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Theme & Motifs",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Theme & Motifs",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the difference between subject, motif, and theme in a literary work."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Develop a thematic claim supported by patterns across the text."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Structure & Plot",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Structure & Plot",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain plot arcs, foreshadowing, and structural choices like in medias res."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how structure controls pacing, suspense, and meaning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "title": "Drama & Shakespeare",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Drama & Shakespeare",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain dramatic conventions including soliloquy, aside, and dramatic irony."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze Shakespearean language and stagecraft in performance and on the page."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

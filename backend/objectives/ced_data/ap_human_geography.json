@@ -1,0 +1,147 @@
+{
+  "course": "AP Human Geography",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Thinking Geographically",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Thinking Geographically",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how maps, GIS, scale, and spatial data reveal geographic patterns."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Interpret maps and geospatial data to identify distributions and relationships."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Population & Migration",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Population & Migration",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the demographic transition model and push/pull factors behind migration."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze population pyramids and migration flows to predict social change."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Culture",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Culture",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain language families, religion diffusion, and folk versus popular culture."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how cultural landscapes express identity and diffusion."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Political Geography",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Political Geography",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain states, boundaries, gerrymandering, and supranational organizations."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate how borders and electoral geography shape power."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Agriculture & Rural Land Use",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Agriculture & Rural Land Use",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain von Th\u00fcnen's model, the Green Revolution, and rural settlement patterns."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Analyze how technology and markets reorganize agricultural landscapes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Urban Geography",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Urban Geography",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain urbanization models, gentrification, and megacity growth."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply urban models to explain land-use and inequality patterns."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "title": "Industry & Economic Development",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Industry & Economic Development",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain Rostow's stages, HDI, and commodity chains in uneven development."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate development strategies using economic and social indicators."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

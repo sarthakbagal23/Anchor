@@ -1,0 +1,107 @@
+{
+  "course": "AP Seminar",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Team Project & Presentation",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Team Project & Presentation",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how teams divide research, synthesize findings, and present coherently."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Deliver a team presentation that integrates multiple lines of inquiry."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Individual Research Essay",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Individual Research Essay",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how to narrow a topic into an arguable, researchable question."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Write a sourced essay that develops a line of reasoning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Evaluating Sources & Arguments",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Evaluating Sources & Arguments",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain credibility, bias, and logical structure in sources."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Assess source reliability and identify flaws in arguments."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Multiple Perspectives",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Multiple Perspectives",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how lenses and perspectives reframe an issue."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Synthesize competing perspectives into a nuanced position."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "End-of-Course Exam Skills",
+      "topics": [
+        {
+          "number": 1,
+          "title": "End-of-Course Exam Skills",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain what short-answer and essay prompts demand under time pressure."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Outline and write timed responses that directly answer the prompt."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

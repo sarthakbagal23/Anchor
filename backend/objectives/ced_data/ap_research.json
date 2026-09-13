@@ -1,0 +1,107 @@
+{
+  "course": "AP Research",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Research Question",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Research Question",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain what makes a research question original, focused, and feasible."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Refine a broad interest into a defensible research question."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Methodology",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Methodology",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain quantitative versus qualitative methods and their validity threats."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Select and justify a method appropriate to the question."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Academic Paper",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Academic Paper",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the structure of a 4,000-5,000-word research paper."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Draft a paper with literature review, method, results, and discussion."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Oral Defense",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Oral Defense",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how to present findings and anticipate examiner questions."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Defend choices of question, method, and interpretation orally."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Revision & Reflection",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Revision & Reflection",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how feedback and limitations sections strengthen research."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Revise the paper in response to critique and document limitations."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

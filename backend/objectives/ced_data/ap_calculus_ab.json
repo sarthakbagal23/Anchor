@@ -1,0 +1,143 @@
+{
+  "course": "AP Calculus AB",
+  "exam_type": "AP",
+  "note": "Study skeleton paraphrased from the course scope (not verbatim College Board prose; unit numbers are our own sequencing, not official CED numbers). Skill codes are indicative: 1.x concept, 2.x/3.x skill.",
+  "units": [
+    {
+      "number": 1,
+      "title": "Limits & Continuity",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Limits & Continuity",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the concept of a limit as the value a function approaches near a point."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate limits graphically, numerically, and analytically including one-sided and infinite limits."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Determine where a function is continuous and classify discontinuities as removable, jump, or infinite."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Derivatives: Rules, Implicit & Related Rates",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Derivatives: Rules, Implicit & Related Rates",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain the derivative as instantaneous rate of change and the slope of the tangent line."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Apply power, product, quotient, and chain rules to differentiate functions."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Use implicit differentiation and solve related-rates problems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Applications of Derivatives",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Applications of Derivatives",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how the first and second derivatives reveal increasing/decreasing behavior and concavity."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Locate extrema and points of inflection and justify them with derivative tests."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Solve optimization problems and apply the Mean Value Theorem."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Integrals & the Fundamental Theorem",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Integrals & the Fundamental Theorem",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain accumulation and the definite integral as a limit of Riemann sums."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Evaluate definite and indefinite integrals using antiderivatives and u-substitution."
+            },
+            {
+              "skill_code": "2.B",
+              "statement": "Apply both parts of the Fundamental Theorem of Calculus."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Applications of Integration",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Applications of Integration",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain how integrals accumulate area and volume from cross-sections."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Calculate areas between curves and volumes of solids of revolution using disk, washer, and shell methods."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Differential Equations Basics",
+      "topics": [
+        {
+          "number": 1,
+          "title": "Differential Equations Basics",
+          "objectives": [
+            {
+              "skill_code": "1.A",
+              "statement": "Explain what a differential equation and its general solution represent, including slope fields."
+            },
+            {
+              "skill_code": "2.A",
+              "statement": "Solve separable differential equations and interpret the particular solution in context."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
