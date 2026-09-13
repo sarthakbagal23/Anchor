@@ -136,7 +136,21 @@
       try {
         if (hasReadyPdf()) {
           assistant.querySelector(".thinking-txt").textContent = "Reading the PDF";
-          const data = await Api.chatVisual(AppState.workspaceId, question);
+          // The vision call is non-streaming with no server-side deadline, and the
+          // hosted vision model can stall for minutes. Bound the wait: on timeout
+          // abort and fall through to the normal grounded text stream below
+          // instead of leaving "Reading the PDF" up forever. 90s comfortably
+          // covers a healthy vision round-trip (~35s observed) while capping a
+          // stall. The catch block already falls back to streamAnswer() on any
+          // error, and an AbortError takes that same path.
+          const visualCtl = new AbortController();
+          const visualTimer = setTimeout(() => visualCtl.abort(), 90000);
+          let data;
+          try {
+            data = await Api.chatVisual(AppState.workspaceId, question, { signal: visualCtl.signal });
+          } finally {
+            clearTimeout(visualTimer);
+          }
           stopTimer();
           AppState.citationMap = data.citations || {};
           body.classList.remove("streaming");
@@ -151,8 +165,13 @@
           await streamAnswer(question, body, stopTimer, container);
         }
       } catch (err) {
-        // The visual path can fail (vision model unset/erroring); fall back to
-        // a normal grounded text answer instead of leaving a raw error.
+        // The visual path can fail (vision model unset/erroring) or time out
+        // (aborted above after 90s); fall back to a normal grounded text
+        // answer instead of leaving a raw error or a permanent spinner.
+        if (err && err.name === "AbortError") {
+          const label = assistant.querySelector(".thinking-txt");
+          if (label) label.textContent = "Vision timed out — answering from text…";
+        }
         try {
           await streamAnswer(question, body, stopTimer, container);
         } catch (err2) {

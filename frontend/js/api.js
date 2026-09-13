@@ -19,8 +19,9 @@
 
   const get = (path) => request(path);
   const del = (path) => request(path, { method: "DELETE" });
-  const post = (path, body) => request(path, {
+  const post = (path, body, init) => request(path, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}),
+    ...(init || {}),
   });
   const patch = (path, body) => request(path, {
     method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}),
@@ -63,7 +64,7 @@
 
     // chat — chatStreamUrl is fetched directly (POST + manual SSE parsing, see chat.js)
     chatStreamUrl: (wsId) => `/api/workspaces/${wsId}/chat`,
-    chatVisual: (wsId, message) => post(`/api/workspaces/${wsId}/chat/visual`, { message }),
+    chatVisual: (wsId, message, options) => post(`/api/workspaces/${wsId}/chat/visual`, { message }, options),
 
     // study guide
     getStudyGuide: (wsId) => get(`/api/workspaces/${wsId}/study-guide`),
