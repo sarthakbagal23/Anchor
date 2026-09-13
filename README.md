@@ -7,7 +7,7 @@ organized as **Course → Unit → Sources → Study Session**: create a course,
 unit, drop in lectures and PDFs, and study inside a workspace where every answer
 links back to the material it came from.
 
-![OpenNotebook chat with time-coded citations](docs/screenshots/chat-citations.png)
+!(docs/screenshots/logo.png)
 
 Drop in a lecture or PDF, ask questions, and get answers grounded in your
 material with clickable citations back to the exact timestamp or page. On top of
