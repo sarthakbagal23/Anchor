@@ -39,7 +39,7 @@ def _similarity(distance: float) -> float:
     return max(0.0, min(1.0, 1.0 - distance))
 
 SYSTEM = (
-    "You are OpenNotebook, helping a student write a crisp study guide section for "
+    "You are Anchor, helping a student write a crisp study guide section for "
     "one learning objective. Base the section on the source evidence supplied below; "
     "cite the evidence inline as [#] where it supports a claim. If the source does not "
     "cover part of the objective, say so briefly and clearly rather than guessing. "

@@ -1,5 +1,5 @@
 [project]
-name = "opennotebook"
+name = "anchor"
 version = "0.1.0"
 description = "Open-source, self-hostable study companion grounded in your sources."
 requires-python = ">=3.11"

@@ -27,8 +27,10 @@ def client(tmp_path, monkeypatch):
     app = api_mod.build_app(store, cfg)
     api_mod.add_security_middleware(app, token="test-token")
     prev_store, prev_cfg = api_mod._STORE, api_mod._CFG
-    # build_app already assigned the singletons; yield, then restore
-    c = TestClient(app)
+    # build_app already assigned the singletons; yield, then restore.
+    # base_url carries the port so the port-scoping rule is genuinely
+    # exercised (a portless client would skip that check).
+    c = TestClient(app, base_url="http://127.0.0.1:8765")
     c.cookies.set("onb_xsrf", "test-token")
     yield c, store, cfg
     api_mod._STORE, api_mod._CFG = prev_store, prev_cfg
@@ -95,6 +97,26 @@ def test_untrusted_host_rejected(client):
     r = c.post("/api/workspaces", json={"title": "x"},
                headers={"Host": "evil.example"})
     assert r.status_code == 403
+
+
+def test_cross_port_loopback_origin_rejected(client):
+    # another LOCAL app (different port) forging a loopback Origin: cookies
+    # are not port-scoped, so the port match is what stops it.
+    c, _, _ = client
+    r = c.post("/api/workspaces", json={"title": "x"},
+               headers={"Origin": "http://127.0.0.1:3000",
+                        "X-Auth-Token": "test-token"})
+    assert r.status_code == 403
+    r = c.get("/api/config", headers={"Referer": "http://localhost:3000/"})
+    assert r.status_code == 403
+
+
+def test_blank_chat_message_rejected_unpersisted(client):
+    c, store, _ = client
+    ws = c.post("/api/workspaces", json={"title": "w"}).json()["id"]
+    assert c.post(f"/api/workspaces/{ws}/chat", json={"message": "   "}).status_code == 400
+    assert c.post(f"/api/workspaces/{ws}/chat/visual", json={"message": ""}).status_code in (400, 422)
+    assert store.list_messages(ws) == []
 
 
 def test_coerce_tolerates_unknown_keys():

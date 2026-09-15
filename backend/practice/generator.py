@@ -32,7 +32,7 @@ MIN_COVERAGE_SIMILARITY = 0.3
 OPTION_KEYS = ("a", "b", "c", "d")
 
 SYSTEM = (
-    "You are OpenNotebook, building a multiple-choice practice question for one "
+    "You are Anchor, building a multiple-choice practice question for one "
     "learning objective from the student's study material. Base the question and its "
     "four options ONLY on the source evidence supplied below; cite the evidence inline "
     "as [#] where it supports the correct answer. Write exactly one correct option and "

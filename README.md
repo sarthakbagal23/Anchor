@@ -39,7 +39,7 @@ Windows shortcut: double-click `run-server.cmd` instead — it refuses a second
 instance, restarts the server if it exits, and logs restarts to
 `server-out.log`.
 
-On first run, edit `~/.opennotebook/config.yaml`: set an LLM `base_url`,
+On first run, edit `~/.anchor/config.yaml`: set an LLM `base_url`,
 `api_key`, and `model`. Everything else works with bundled defaults (see
 [`config.example.yaml`](config.example.yaml)). API keys are redacted in API
 responses and are never sent to the browser.

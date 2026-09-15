@@ -1,4 +1,4 @@
-"""OpenNotebook — open the local web app."""
+"""Anchor — open the local web app."""
 import threading
 import webbrowser
 from pathlib import Path
@@ -7,20 +7,32 @@ import uvicorn
 from fastapi.staticfiles import StaticFiles
 
 from backend.api import build_app, add_security_middleware
-from backend.config import load_config
+from backend.config import load_config, data_dir, migrate_db
 from backend.store import Store
 
-DB_PATH = Path(__file__).parent / "opennotebook.db"
 FRONTEND_DIR = Path(__file__).parent / "frontend"
+
+cfg = load_config()
+
+
+def _resolve_db_path() -> Path:
+    """Database lives under the data dir now (no longer loose in the repo
+    root). First boot copies the legacy repo-root opennotebook.db over —
+    copy, never move, so a failed migration can't strand study data."""
+    target = data_dir(cfg) / "anchor.db"
+    legacy = Path(__file__).parent / "opennotebook.db"
+    return migrate_db(target, legacy, "database")
+
+
+DB_PATH = _resolve_db_path()
 
 store = Store(str(DB_PATH))
 store.init()
-cfg = load_config()
 
 # Print config summary so user knows what model is loaded
-print(f"[OpenNotebook] LLM: {cfg.llm.model or '(not set)'} @ {cfg.llm.base_url or '(not set)'}")
+print(f"[Anchor] LLM: {cfg.llm.model or '(not set)'} @ {cfg.llm.base_url or '(not set)'}")
 if not cfg.llm.base_url or not cfg.llm.model:
-    print("[OpenNotebook] WARNING: LLM not configured — chat will fail. Edit ~/.opennotebook/config.yaml")
+    print("[Anchor] WARNING: LLM not configured — chat will fail. Edit ~/.anchor/config.yaml")
 
 app = build_app(store, cfg)
 
@@ -33,7 +45,9 @@ def _load_xsrf_token() -> str:
     import os
     import secrets
 
-    cfg_dir = Path(os.environ.get("OPENNOTEBOOK_CONFIG_DIR", Path.home() / ".opennotebook"))
+    from backend.config import config_dir
+
+    cfg_dir = config_dir()
     cfg_dir.mkdir(parents=True, exist_ok=True)
     path = cfg_dir / "xsrf_token"
     try:
@@ -73,7 +87,7 @@ async def no_cache_frontend(request, call_next):
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="OpenNotebook local server")
+    parser = argparse.ArgumentParser(description="Anchor local server")
     parser.add_argument("--host", default="127.0.0.1", help="interface to bind (default 127.0.0.1; keep loopback unless you know why)")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--no-browser", action="store_true", help="don't auto-open the browser")

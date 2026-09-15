@@ -394,6 +394,9 @@ async def add_source(ws_id: int, body: SourceIn):
     return {"source_id": src_id}
 
 
+MAX_UPLOAD_RAW_BYTES = 26 * 1024 * 1024  # 25MB file limit + multipart framing slack
+
+
 @router.post("/workspaces/{ws_id}/uploads")
 async def upload_source(ws_id: int, request: Request):
     if not _STORE.get_workspace(ws_id):
@@ -405,7 +408,19 @@ async def upload_source(ws_id: int, request: Request):
     content_type = request.headers.get("content-type", "")
     if "multipart/form-data" not in content_type:
         raise HTTPException(400, "Upload a file as multipart form data")
-    raw = await request.body()
+    # Stream the body with a running byte counter instead of awaiting the whole
+    # thing: a 2GB upload previously sat fully in RAM (twice, after parsing)
+    # before the 25MB check below ever ran. Oversize bodies die at ~26MB
+    # (25MB file limit + multipart framing slack); the exact file-size check
+    # after parsing stays as the authoritative one.
+    raw_parts: list[bytes] = []
+    raw_len = 0
+    async for chunk in request.stream():
+        raw_parts.append(chunk)
+        raw_len += len(chunk)
+        if raw_len > MAX_UPLOAD_RAW_BYTES:
+            raise HTTPException(413, "Files must be 25 MB or smaller")
+    raw = b"".join(raw_parts)
     envelope = (f"Content-Type: {content_type}\r\nMIME-Version: 1.0\r\n\r\n").encode() + raw
     message = BytesParser(policy=policy.default).parsebytes(envelope)
     file_part = next((part for part in message.iter_attachments() if part.get_filename()), None)
@@ -503,6 +518,8 @@ async def chat(ws_id: int, body: dict):
     if not _STORE.get_workspace(ws_id):
         raise HTTPException(404, "workspace not found")
     query = body.get("message", "")
+    if not isinstance(query, str) or not query.strip():
+        raise HTTPException(400, "message must not be empty")
     _STORE.add_message(ws_id, "user", query)
     raw_history = _STORE.list_messages(ws_id)
     # Citations live in their own column now (list_messages also normalizes
@@ -551,6 +568,8 @@ async def chat_visual(ws_id: int, body: ChatIn):
     if not _STORE.get_workspace(ws_id):
         raise HTTPException(404, "workspace not found")
     query = body.message
+    if not isinstance(query, str) or not query.strip():
+        raise HTTPException(400, "message must not be empty")
     _STORE.add_message(ws_id, "user", query)
     raw_history = _STORE.list_messages(ws_id)
     clean_history = [
@@ -601,7 +620,7 @@ def build_app(store: Store, cfg: AppConfig) -> FastAPI:
     global _STORE, _CFG
     _STORE = store
     _CFG = cfg
-    app = FastAPI(title="OpenNotebook")
+    app = FastAPI(title="Anchor")
     app.include_router(router)
     return app
 
@@ -611,19 +630,30 @@ XSRF_HEADER = "x-auth-token"
 _LOCAL_HOSTS = {"127.0.0.1", "localhost", "::1", "testserver"}  # testserver = FastAPI TestClient
 
 
-def _origin_allowed(origin: str | None, referer: str | None) -> bool:
+def _origin_allowed(origin: str | None, referer: str | None, server_port: int | None = None) -> bool:
     """Same-origin (or non-browser, i.e. neither header) requests pass. A
-    foreign Origin/Referer means a third-party page is driving the request."""
+    foreign Origin/Referer means a third-party page is driving the request.
+
+    Cookies are NOT port-scoped, so hostname-only checking would let any other
+    local web app (compromised dev server, malicious npm dep) read our cookie
+    and forge loopback requests. Hence the port rule: when both the claimed
+    origin and our own socket port are known, they must match — our page is
+    always served from the API's own port, so a loopback origin on any other
+    port is a different local app and is refused."""
     from urllib.parse import urlparse
 
     for value in (origin, referer):
         if not value:
             continue
         try:
-            host = (urlparse(value).hostname or "").lower()
+            parsed = urlparse(value)
+            host = (parsed.hostname or "").lower()
+            port = parsed.port
         except Exception:
             return False
         if host not in _LOCAL_HOSTS:
+            return False
+        if server_port is not None and port is not None and port != server_port:
             return False
     return True
 
@@ -635,16 +665,18 @@ def add_security_middleware(app: FastAPI, token: str):
 
     Rules for /api/*, in order:
     1. Host must be loopback (kills DNS rebinding).
-    2. A foreign Origin/Referer is refused outright, no bypass — browsers
-       always attach one on cross-origin requests and attacker pages cannot
-       suppress it, so this alone kills CSRF. (Deliberately, a valid token
-       does NOT override this: a bypass here would turn any token leak into
-       remote code execution via the ingest endpoints.)
-    3. Mutating methods from a browser-like client (Origin/Referer present,
-       hence allowlisted by rule 2, i.e. our own page) must also echo the
-       token in X-Auth-Token — defense in depth against same-origin XSS and
-       ancient browsers that omit Origin. The server sets the token as a
-       SameSite=Lax cookie our page reads; attackers can do neither.
+    2. Origin/Referer must be loopback AND on this same port, when present —
+       browsers always attach one on cross-origin requests and attacker pages
+       cannot suppress it, so this alone kills CSRF. The port match matters
+       because cookies are not port-scoped: without it, any OTHER local web
+       app could read our cookie and forge requests with a loopback Origin.
+    3. Mutating methods from a browser-like client must also echo the token
+       in X-Auth-Token as defense in depth (same-origin XSS, ancient browsers
+       that omit Origin). The server sets the token as a SameSite=Lax cookie
+       our page reads. Honest limit: a malicious *local* app holding the
+       cookie could still pass rules 2–3 — but only from this same port,
+       which it cannot listen on while we hold it. The important boundary,
+       non-loopback attackers, is closed unconditionally with no bypass.
     Non-browser clients (curl, python, TestClient) send neither header and
     pass through untouched. GET streams can't set custom headers
     (EventSource), so they rely on rule 2 alone.
@@ -660,7 +692,7 @@ def add_security_middleware(app: FastAPI, token: str):
                 return JSONResponse({"detail": "Untrusted Host."}, status_code=403)
             origin = request.headers.get("origin")
             referer = request.headers.get("referer")
-            if not _origin_allowed(origin, referer):
+            if not _origin_allowed(origin, referer, request.url.port):
                 return JSONResponse({"detail": "Cross-origin request refused."}, status_code=403)
             browser_like = bool(origin or referer)
             if browser_like and request.method not in ("GET", "HEAD", "OPTIONS"):

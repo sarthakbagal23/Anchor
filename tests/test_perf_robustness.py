@@ -30,8 +30,10 @@ def test_trim_history_newest_first_and_capped():
 
 def test_trim_history_char_budget():
     big = [{"role": "user", "content": "y" * 9000}, {"role": "user", "content": "z" * 9000}]
-    trimmed = pipe_mod._trim_history(big)
-    assert len(trimmed) == 1 and trimmed[0]["content"].startswith("z")
+    # default budget (8000) fits neither whole message: strict drop, no
+    # half-included history that would break the shared-budget guarantee
+    assert pipe_mod._trim_history(big) == []
+    assert pipe_mod._trim_history(big, char_budget=9000)[0]["content"].startswith("z")
 
 
 def _pipe():
@@ -86,13 +88,16 @@ def test_embed_many_dead_endpoint_degrades_at_once():
 
 
 def test_whisper_settings_defaults_and_env(monkeypatch):
-    monkeypatch.delenv("OPENNOTEBOOK_WHISPER_DEVICE", raising=False)
-    monkeypatch.delenv("OPENNOTEBOOK_WHISPER_COMPUTE", raising=False)
-    monkeypatch.delenv("OPENNOTEBOOK_WHISPER_BEAM", raising=False)
+    for var in ("ANCHOR_WHISPER_DEVICE", "ANCHOR_WHISPER_COMPUTE", "ANCHOR_WHISPER_BEAM",
+                "OPENNOTEBOOK_WHISPER_DEVICE", "OPENNOTEBOOK_WHISPER_COMPUTE", "OPENNOTEBOOK_WHISPER_BEAM"):
+        monkeypatch.delenv(var, raising=False)
     assert transcribe_mod._whisper_settings() == ("cpu", "int8", 1)
-    monkeypatch.setenv("OPENNOTEBOOK_WHISPER_DEVICE", "cuda")
-    monkeypatch.setenv("OPENNOTEBOOK_WHISPER_BEAM", "5")
+    monkeypatch.setenv("ANCHOR_WHISPER_DEVICE", "cuda")
+    monkeypatch.setenv("ANCHOR_WHISPER_BEAM", "5")
     assert transcribe_mod._whisper_settings() == ("cuda", "int8", 5)
+    monkeypatch.delenv("ANCHOR_WHISPER_DEVICE")
+    monkeypatch.setenv("OPENNOTEBOOK_WHISPER_DEVICE", "cuda")
+    assert transcribe_mod._whisper_settings()[0] == "cuda"
 
 
 def test_youtube_download_has_timeout():
@@ -144,3 +149,34 @@ def test_message_order_follows_insertion(tmp_path):
     for i in range(5):
         store.add_message(ws, "user", f"q{i}")
     assert [m["content"] for m in store.list_messages(ws)] == [f"q{i}" for i in range(5)]
+
+
+def test_shared_budget_never_exceeds_context(tmp_path):
+    # passages + history + reserves must fit max_context together: with a
+    # small window and a long history, history is kept (recency) while
+    # passages shrink to the remainder — never the reverse.
+    from backend.grounding import pipeline as pipe_mod
+    from backend.grounding.embedder import _HashingEmbedder
+
+    store = Store(str(tmp_path / "t.db"))
+    store.init()
+    ws = store.add_workspace("ws")
+    src = store.add_source(ws, "pdf", "f", None, None)
+    store.set_source_status(src, "ready")
+    emb = _HashingEmbedder()
+    for i in range(6):
+        store.add_chunk(src, i, f"photosynthesis fact number {i} " * 20, None, None, 100,
+                        emb.embed(f"photosynthesis fact {i}"))
+    hist = [{"role": "user" if i % 2 == 0 else "assistant", "content": f"turn {i} " + "w" * 300}
+            for i in range(30)]
+    pipe = pipe_mod.Pipeline.__new__(pipe_mod.Pipeline)
+    pipe.store = store
+    pipe.embedder = emb
+    pipe.reranker = None
+    pipe.max_context = 4000
+    msgs, _ = pipe.ground("tell me about photosynthesis", ws, hist)
+    total_est = sum(len(m["content"]) // 4 for m in msgs if isinstance(m.get("content"), str))
+    total_est += pipe_mod.RESERVE_TOKENS_FOR_ANSWER
+    assert total_est <= pipe.max_context, f"prompt over budget: ~{total_est} > 4000"
+    # newest history survives while passages absorbed the squeeze
+    assert "turn 29" in msgs[-1]["content"] or any("turn 29" in m.get("content", "") for m in msgs)

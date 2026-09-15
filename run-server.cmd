@@ -1,5 +1,5 @@
 @echo off
-rem OpenNotebook dev server with watchdog: refuses a second instance on
+rem Anchor dev server with watchdog: refuses a second instance on
 rem port 8765, restarts the server if it exits unexpectedly, and timestamps
 rem every (re)start into server-out.log so a silent death is visible.
 cd /d "C:\Users\sarth\Desktop\opennotebook"

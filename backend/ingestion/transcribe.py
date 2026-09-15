@@ -15,10 +15,17 @@ _MODEL_LOCK = threading.Lock()
 
 
 def _whisper_settings():
+    def env(*names, default):
+        for name in names:
+            value = os.environ.get(name)
+            if value:
+                return value
+        return default
+
     return (
-        os.environ.get("OPENNOTEBOOK_WHISPER_DEVICE", "cpu"),
-        os.environ.get("OPENNOTEBOOK_WHISPER_COMPUTE", "int8"),
-        int(os.environ.get("OPENNOTEBOOK_WHISPER_BEAM", "1")),
+        env("ANCHOR_WHISPER_DEVICE", "OPENNOTEBOOK_WHISPER_DEVICE", default="cpu"),
+        env("ANCHOR_WHISPER_COMPUTE", "OPENNOTEBOOK_WHISPER_COMPUTE", default="int8"),
+        int(env("ANCHOR_WHISPER_BEAM", "OPENNOTEBOOK_WHISPER_BEAM", default="1")),
     )
 
 def parse_vtt(vtt_path: str) -> list[dict]:

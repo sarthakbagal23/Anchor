@@ -12,14 +12,17 @@ from backend.grounding.reranker import get_reranker
 from backend.grounding.citations import build_map
 
 RESERVE_TOKENS_FOR_ANSWER = 1500
-# Chat history is budgeted separately from passages (_fit_context only budgets
-# passages): without this, a long session blows the context window of exactly
-# the small local models this tool targets, producing provider errors instead
-# of graceful truncation.
+# Rough cost of the SYSTEM prompt (unavoidable overhead on every call).
+SYSTEM_EST_TOKENS = 500
+# Chat history used to have its own independent budget (20 msgs / 12k chars),
+# which stacked on top of the passage budget and could jointly blow an 8k
+# window. Now all three consumers — answer reserve, system prompt, history,
+# passages — share ONE budget: history is reserved first (recency wins), and
+# passages fill whatever is left.
 MAX_HISTORY_MESSAGES = 20  # ~10 back-and-forth turns
-MAX_HISTORY_CHARS = 12000
+HISTORY_BUDGET_FRACTION = 0.25  # history may claim at most this share of the usable window
 SYSTEM = (
-    "You are OpenNotebook, a careful study assistant. Your job is to help a student "
+    "You are Anchor, a careful study assistant. Your job is to help a student "
     "understand their class material, prepare for assessment, and identify what to review. "
     "Use the source evidence supplied below as the primary authority. Refer to it naturally "
     "as the lecture, notes, or source material—never as 'passages'. "
@@ -48,21 +51,33 @@ SYSTEM = (
 )
 
 
-def _trim_history(chat_history: list[dict]) -> list[dict]:
+def _trim_history(chat_history: list[dict], char_budget: int = 8000) -> list[dict]:
     """Newest-first budget: keep the most recent turns that fit in both the
     message count and the char budget. Continuity for long sessions comes from
     recency; the current question is always appended separately by callers."""
     kept: list[dict] = []
     used = 0
     for m in reversed(chat_history or []):
+        if len(kept) >= MAX_HISTORY_MESSAGES:
+            break
         content = m.get("content") if isinstance(m, dict) else ""
         size = len(content) if isinstance(content, str) else 0
-        if len(kept) >= MAX_HISTORY_MESSAGES or used + size > MAX_HISTORY_CHARS:
+        if used + size > char_budget:
             break
         kept.append(m)
         used += size
     kept.reverse()
     return kept
+
+
+def _history_tokens(trimmed: list[dict]) -> int:
+    """Rough token estimate (chars/4) for already-trimmed history."""
+    total = 0
+    for m in trimmed:
+        content = m.get("content") if isinstance(m, dict) else ""
+        if isinstance(content, str):
+            total += len(content) // 4
+    return total
 
 
 def _interleave_by_source(ranked: list[dict]) -> list[dict]:
@@ -112,8 +127,9 @@ class Pipeline:
         # the rest before the context budget is spent.
         return _interleave_by_source(ranked)
 
-    def _fit_context(self, ranked: list[dict]) -> list[dict]:
-        budget = self.max_context - RESERVE_TOKENS_FOR_ANSWER
+    def _fit_context(self, ranked: list[dict], budget: int | None = None) -> list[dict]:
+        if budget is None:
+            budget = self.max_context - RESERVE_TOKENS_FOR_ANSWER
         kept, used = [], 0
         for c in ranked:
             tc = c.get("token_count") or len(c["text"].split())
@@ -157,13 +173,16 @@ class Pipeline:
 
     def ground(self, query: str, workspace_id: int, chat_history: list[dict] | None = None) -> tuple[list[dict], dict]:
         chat_history = chat_history or []
+        usable = max(0, self.max_context - RESERVE_TOKENS_FOR_ANSWER - SYSTEM_EST_TOKENS)
+        trimmed = _trim_history(chat_history, char_budget=int(usable * HISTORY_BUDGET_FRACTION * 4))
+        passage_budget = max(0, usable - _history_tokens(trimmed))
         ranked = self._stage_passages(query, workspace_id)
-        kept = self._fit_context(ranked)
+        kept = self._fit_context(ranked, budget=passage_budget)
         if not kept:
             msgs = [{"role": "system", "content": SYSTEM},
                     {"role": "user", "content": query}]
             return msgs, {}
-        return self._build_prompt(query, kept, chat_history)
+        return self._build_prompt(query, kept, trimmed)
 
     def stream_answer(self, query: str, workspace_id: int, chat_history: list[dict] | None = None,
                       llm_stream=None) -> Iterator[str]:

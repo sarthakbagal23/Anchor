@@ -272,6 +272,12 @@ class Store:
         exists = self.conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?", (tbl,)
         ).fetchone()
+        if exists:
+            # Steady state (every search): no DDL ran, so no commit — a commit
+            # per search would fsync the DB on every single retrieval.
+            self._vec_ready = True
+            self.vec_dim = dim
+            return
         if not exists:
             # One-time transparent migration from the pre-namespacing layout
             # (ALTER TABLE RENAME does not work on vec0 shadow tables, so copy).
@@ -298,7 +304,7 @@ class Store:
                         self.conn.rollback()
                         import sys
                         print(
-                            f"[OpenNotebook] WARNING: vec migration failed ({e}); "
+                            f"[Anchor] WARNING: vec migration failed ({e}); "
                             "starting this dimension empty, legacy vec_chunks kept.",
                             file=sys.stderr,
                         )

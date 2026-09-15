@@ -1,14 +1,16 @@
-"""Config: load/validate ~/.opennotebook/config.yaml with zero-config defaults
+"""Config: load/validate ~/.anchor/config.yaml with zero-config defaults
 and graceful degradation."""
 from __future__ import annotations
 import os
+import shutil
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any
 
 import yaml
 
-DEFAULT_CONFIG_DIR = Path(os.environ.get("OPENNOTEBOOK_CONFIG_DIR", Path.home() / ".opennotebook"))
+LEGACY_ENV_VAR = "OPENNOTEBOOK_CONFIG_DIR"
+DEFAULT_CONFIG_DIR = Path(os.environ.get("ANCHOR_CONFIG_DIR", Path.home() / ".anchor"))
 DEFAULTS_YAML = """
 data_dir: null
 llm:
@@ -130,7 +132,7 @@ def _coerce(raw: dict) -> AppConfig:
         if unknown:
             import sys
             print(
-                f"[OpenNotebook] WARNING: ignoring unknown key(s) {unknown} "
+                f"[Anchor] WARNING: ignoring unknown key(s) {unknown} "
                 f"in config section {name!r} (known keys: {sorted(known)})",
                 file=sys.stderr,
             )
@@ -158,8 +160,76 @@ def _validate(cfg: AppConfig) -> AppConfig:
     return cfg
 
 
+def migrate_file(target: Path, legacy: Path, label: str) -> Path:
+    """Return `target`, copying `legacy` there first when the target is missing.
+
+    One-time, copy-never-move (the original stays intact), never raises: on
+    any failure it warns and returns whichever path exists, preferring the
+    target. This is how the OpenNotebook→Anchor rename moves settings without
+    stranding user data.
+    """
+    try:
+        if not target.exists() and legacy.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if legacy.is_dir():
+                shutil.copytree(legacy, target)
+            else:
+                shutil.copy2(legacy, target)
+            print(f"[Anchor] Migrated {label} from {legacy} to {target} (original kept).")
+    except Exception as e:
+        print(f"[Anchor] WARNING: {label} migration failed ({e}); continuing.")
+    if target.exists() or not legacy.exists():
+        return target
+    return legacy
+
+
+def migrate_db(target: Path, legacy: Path, label: str) -> Path:
+    """Like migrate_file, but correct for SQLite databases in WAL mode: a live
+    database is main-file + -shm/-wal sidecars, and copying only the main file
+    silently drops every transaction since the last checkpoint. The online
+    backup API copies a transactionally consistent snapshot instead, safe even
+    if another process currently holds the source open."""
+    import sqlite3
+
+    try:
+        if not target.exists() and legacy.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            src = sqlite3.connect(str(legacy))
+            try:
+                dst = sqlite3.connect(str(target))
+                try:
+                    src.backup(dst)
+                finally:
+                    dst.close()
+            finally:
+                src.close()
+            print(f"[Anchor] Migrated {label} from {legacy} to {target} (original kept).")
+    except Exception as e:
+        print(f"[Anchor] WARNING: {label} migration failed ({e}); continuing.")
+    if target.exists() or not legacy.exists():
+        return target
+    return legacy
+
+
+def config_dir() -> Path:
+    """Effective config dir. ANCHOR_CONFIG_DIR wins, OPENNOTEBOOK_CONFIG_DIR is
+    honored for pre-rename setups, otherwise ~/.anchor with a one-time copy
+    from ~/.opennotebook when upgrading."""
+    override = os.environ.get("ANCHOR_CONFIG_DIR")
+    if override:
+        return Path(override)
+    legacy_env = os.environ.get(LEGACY_ENV_VAR)
+    if legacy_env:
+        return Path(legacy_env)
+    target = Path.home() / ".anchor"
+    legacy = Path.home() / ".opennotebook"
+    if not target.exists() and legacy.exists():
+        migrate_file(target, legacy, "settings")
+    return target
+
+
 def load_config() -> AppConfig:
-    cfg_dir = Path(os.environ.get("OPENNOTEBOOK_CONFIG_DIR", DEFAULT_CONFIG_DIR))
+    cfg_dir = config_dir()
     cfg_path = cfg_dir / "config.yaml"
     base = yaml.safe_load(DEFAULTS_YAML)
     if cfg_path.exists():
@@ -178,12 +248,11 @@ def data_dir(cfg: AppConfig | None = None) -> Path:
     """Effective storage dir for uploaded PDFs + rendered page images."""
     if cfg is not None and cfg.data_dir:
         return Path(cfg.data_dir)
-    base = Path(os.environ.get("OPENNOTEBOOK_CONFIG_DIR", DEFAULT_CONFIG_DIR))
-    return base / "data"
+    return config_dir() / "data"
 
 
 def save_config(cfg: AppConfig) -> None:
-    cfg_dir = Path(os.environ.get("OPENNOTEBOOK_CONFIG_DIR", DEFAULT_CONFIG_DIR))
+    cfg_dir = config_dir()
     cfg_path = cfg_dir / "config.yaml"
     cfg_dir.mkdir(parents=True, exist_ok=True)
     raw = asdict(cfg)
