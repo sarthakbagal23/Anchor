@@ -7,6 +7,9 @@ built/not-built record.
 
 ## Original MVP ledger (all complete)
 
+(Commit references from the original planning session did not correspond to
+real commits and have been removed — the task list itself is what's preserved.)
+
 - [x] Task 1: scaffold, venv, git, entrypoint shell
 - [x] Task 2: config.py — load/validate/graceful degrade
 - [x] Task 3: store.py — SQLite + sqlite-vec schema and CRUD
