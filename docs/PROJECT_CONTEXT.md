@@ -1,10 +1,14 @@
-# OpenNotebook — Product Context and Build Plan
+# Anchor — Product Context and Build Plan
 
-This is the canonical product context for continuing work on OpenNotebook. Read this before making product or UX changes.
+This is the canonical product context for continuing work on Anchor. Read this before making product or UX changes.
+
+> Note: this project started life as "OpenNotebook" (see the historical docs
+> under `docs/superpowers/`). Code, config, and UI are renamed; only
+> explicitly historical documents keep the old name.
 
 ## Product thesis
 
-OpenNotebook is not trying to be another general-purpose AI notebook or a NotebookLM clone. It is a study environment that turns messy class material into a serious, focused study session.
+Anchor is not trying to be another general-purpose AI notebook or a NotebookLM clone. It is a study environment that turns messy class material into a serious, focused study session.
 
 The student should be able to say: “I have a test Friday. I want to understand this, but I do not have time to organize everything myself.” The product should turn their course material into understanding, practice, and targeted review.
 
@@ -24,18 +28,16 @@ Open source, self-hosting, and bring-your-own-model support are important implem
 
 ## Core product model
 
-The long-term mental model is:
-
 ```text
 Course
   └── Unit
-        ├── Sources (YouTube, PDFs, slides, notes)
-        └── Study Session
+        ├── Sources (YouTube, PDFs)
+        └── Study Session (workspaces)
 ```
 
-The primary object should eventually be a Course, not a Notebook. A course contains units; units combine multiple source types; a study session adapts the experience to the student’s available time and desired depth.
+The primary object is a Course, not a Notebook. A course contains units; units combine multiple source types; a study session adapts the experience to the student’s available time and desired depth.
 
-Study session inputs:
+Study session inputs (planned, not yet built — see roadmap):
 
 - Available time: 30 minutes, 1 hour, 2 hours, 3+ hours.
 - Study mode: Smart Cram ↔ Deep Study.
@@ -48,74 +50,99 @@ The differentiating question is not only “What do you want to ask about your s
 Learn → Practice → Diagnose → Review weak spots → Practice again
 ```
 
-The product should eventually generate:
+Shipped toward this loop:
 
-- A structured study guide, not a wall of AI Markdown.
-- Core concepts ranked by importance.
-- “What you need to know,” “Why it matters,” “Example,” “Common trap,” and “Try it.”
-- Practice questions and explanations.
-- Weakness detection, such as “Transformations — 42%.”
+- A structured study guide (one grounded section per learning objective), not a wall of AI Markdown.
+- Practice questions with explanations, server-graded so the key never leaks.
+- Weakness detection, per objective, worst first (e.g. “Transformations — 42%”).
 - Direct links back to the exact source timestamp or PDF page for review.
+
+Still ahead: time-boxed/smart-cram session setup, core-concept ranking, and source-linked review loops with progress views.
 
 ## Long-term architecture
 
-The current MVP is a strong grounded RAG foundation:
+The grounded RAG foundation is built and hardened:
 
 ```text
 YouTube/PDF source
-  → ingestion
+  → ingestion (transcribe / extract → chunk → batch-embed → single-commit store)
   → timestamp/page-preserving chunks
-  → embeddings
-  → retrieval
+  → embeddings (sqlite-vec, per-dimension tables)
+  → retrieval (workspace-scoped candidate pool, ready-only)
   → reranking
-  → context fitting
+  → shared passage+history context budget
   → grounded prompt
   → LLM streaming
   → citation map
   → clickable source location
 ```
 
-The product layer should eventually sit above this:
+The study-intelligence layer on top is partially built:
 
 ```text
 Source → RAG → Study Intelligence layer
-                    ├── Study Guide
-                    ├── Cram Sheet
-                    ├── Practice Questions
-                    ├── Weakness Detection
-                    └── Study Plan
+                    ├── Study Guide (shipped, persisted, regenerable)
+                    ├── Cram Sheet (not started)
+                    ├── Practice Questions (shipped, server-graded)
+                    ├── Weakness Detection (shipped, worst-first panel)
+                    └── Study Plan (not started)
 ```
 
 Do not throw away or bypass the existing retrieval/reranking/citation architecture. It is the foundation for trustworthy study outputs.
 
 ## Current implementation
 
-Backend:
+Backend (`backend/`):
 
-- FastAPI entrypoint: `main.py`.
-- API routes: `backend/api.py`.
-- Grounding pipeline: `backend/grounding/pipeline.py`.
-- Retrieval/reranking: `backend/grounding/retriever.py`, `backend/grounding/reranker.py`.
-- Citation mapping: `backend/grounding/citations.py`.
-- YouTube ingestion: `backend/ingestion/youtube.py`, `backend/ingestion/transcribe.py`, `backend/ingestion/ingest.py`.
-- PDF extraction/ingestion: `backend/ingestion/document.py`.
-- SQLite store, including PDF page numbers: `backend/store.py`.
-- LLM client: `backend/llm_client.py`.
+- Entrypoint + static mount + CSRF/DNS-rebind middleware: `main.py`.
+- API routes + security middleware: `backend/api.py`.
+- Config with secret redaction and rename migration: `backend/config.py`.
+- SQLite store + dim-namespaced vectors + citations column: `backend/store.py`.
+- OpenAI-compatible LLM client (cloud + local): `backend/llm_client.py`.
+- Grounding: `backend/grounding/pipeline.py` (single-ground chat with shared
+  token budget), `retriever.py`, `reranker.py`, `citations.py`,
+  `visual.py` (PDF vision Q&A with annotation overlays).
+- Ingestion: `backend/ingestion/youtube.py`, `transcribe.py` (cached Whisper),
+  `ingest.py` (batched), `document.py` (PDF), `pdfrender.py` (page images).
+- Objectives: `backend/objectives/ced.py` + `ced_data/*.json` (38 AP courses),
+  `extract.py` (AI extraction for everything else).
+- Study: `backend/study/guide.py` (persisted per-objective guides).
+- Practice: `backend/practice/generator.py` (server-graded quizzes, weak spots).
 
-Frontend:
+Frontend (`frontend/`, plain HTML/CSS/JS, no build step):
 
-- `frontend/index.html`, `frontend/app.js`, `frontend/style.css`, `frontend/player.js`.
-- Current UI is intentionally the stable notebook/source/chat/player MVP while product work proceeds incrementally.
-- YouTube ingestion and timestamp seeking are foundational and must remain working.
-- `frontend/formatter.js` formats headings, paragraphs, lists, bold, italics, and inline code.
-- Citations currently display compactly as `22:08 · Source 1`; hovering shows the transcript; clicking seeks the video.
+- Shell + study-desk theme: `index.html`, `style.css`, `logo.png`.
+- Namespaced modules in `frontend/js/`: `main.js` (bootstrap +
+  `App.openWorkspace`), `state.js` (one shared `AppState`), `api.js` (every
+  backend call + CSRF header), `sse.js` (hand-rolled POST-stream SSE parser),
+  `chat.js` (single in-flight send, route/page/citation events),
+  `citations.js` (stable Source-N numbering, click-to-seek),
+  `sidebar.js` (course/unit/workspace tree + modals), `sources.js` (YouTube
+  add + PDF upload with progress), `studyGuide.js`, `practice.js` (key never
+  touches the client), `pdfViewer.js` (multi-page render, jump, highlight and
+  AI-annotation overlays), `player.js` (YouTube IFrame wrapper),
+  `formatter.js`, `richText.js`, `dom.js`.
+- See `frontend/DEV_NOTES.md` for the load-bearing details and handoff tasks.
+
+Chat routing (current architecture — read before touching):
+
+- `POST /api/workspaces/{id}/chat` grounds ONCE, then answers over one SSE
+  stream: a `route` event (`route:text` / `route:vision`), an optional `page`
+  event (image + annotations), streamed tokens, then `citations`.
+- The vision path triggers only when passage [1] of the grounded evidence
+  carries a `page_num` (`evidence_anchors_pdf` in `visual.py`) — never merely
+  because the workspace contains a PDF. Positions 2+ are interleave order,
+  not relevance order, so they must not drive routing.
+- `POST .../chat/visual` still exists for compatibility (blocking JSON).
 
 Current supported source state:
 
-- YouTube upload/ingestion is working.
-- PDF backend ingestion exists and stores page citations.
-- The PDF picker/upload UI still needs to be wired into the frontend as its own milestone.
-- Video visual understanding is not implemented yet. Never claim to see slides, diagrams, or frames when only transcript text is available.
+- YouTube ingestion (download → transcribe → chunk → embed) working, with
+  progress streaming and duplicate-URL detection.
+- PDF upload with progress, per-page extraction, page-image rendering,
+  citation jump + highlight, and vision Q&A — all working end to end.
+- Video understanding is transcript-only; PDF understanding can additionally
+  see rendered pages when a vision model is configured. Never claim otherwise.
 
 ## AI behavior requirements
 
@@ -124,12 +151,12 @@ The system prompt should make the model understand its job: help a student under
 Required behavior:
 
 - Treat supplied source evidence as the primary authority.
-- Refer to “the lecture,” “the notes,” or “the source material,” never “passages.”
+- Refer to “the lecture,” “the notes,” or the “source material,” never “passages.”
 - Cite supported claims with the provided citation numbers.
 - Never invent citation numbers or timestamps.
 - If evidence is partial, answer the supported part first and clearly state what is not established.
 - For useful general knowledge outside the sources, answer concisely under “Beyond this source:” instead of refusing with only “Not covered in the sources.”
-- Be honest that current video ingestion reads transcripts but does not inspect video visuals.
+- Be honest that video ingestion reads transcripts but does not inspect video visuals (PDF pages can additionally be seen by the vision model when configured).
 - Use clean study formatting: short headings, short paragraphs, bullets/numbered steps, bold key terms, and backticks for code.
 - Keep citations inline with the sentence they support.
 
@@ -137,30 +164,31 @@ Required behavior:
 
 - Build one specialized capability at a time.
 - Test each capability before starting the next.
-- Preserve the working YouTube iframe, timestamp seeking, citation hover, and transcript behavior.
+- Preserve the working YouTube iframe, timestamp seeking, citation jump, and transcript behavior.
 - Prefer the best product outcome over a lazy or unnecessarily minimal shortcut.
-- Avoid broad UI rewrites while foundational behavior is being stabilized.
 - Do not add speculative features before the current milestone is tested.
 
-## Recommended roadmap
+## Recommended roadmap (only genuinely-ahead work)
 
-1. Stabilize chat rendering, Markdown, compact citations, and timestamp interactions.
-2. Add the PDF upload picker and progress/status UI using the existing backend route; test PDF page citations.
-3. Add a real Course → Unit structure while preserving source/chat compatibility.
-4. Add Study Session setup: available time and Cram/Deep Study mode.
-5. Generate structured study guides and cram sheets from the existing grounded pipeline.
-6. Add practice questions and weakness tracking.
-7. Add source-linked review loops and progress views.
-8. Explore visual grounding (key frames/slides/diagrams) only after designing a reliable, efficient extraction and storage strategy.
+1. Real beta users: 2–3 classmates cramming one real test; write down what breaks.
+2. Packaging: Dockerfile / lock file for the heavy `[local]` deps.
+3. Settings UI for the existing `/api/config` route (keys stay redacted server-side).
+4. Mobile nav: sidebar and preview panel are `display:none` below 900px.
+5. Toast notifications replacing the remaining `alert()`/`confirm()` calls.
+6. Keyboard shortcuts (`/` focuses chat, `Esc` closes modals).
+7. Cram Sheet + Study Plan layers (time-boxed/smart-cram session setup, concept ranking, review loops).
 
 ## Current test/runtime details
 
-- Local URL: `http://127.0.0.1:8765/`.
+- Local URL: `http://127.0.0.1:8765/` (run via `run-server.cmd` watchdog or `python main.py`; `--host/--port/--no-browser` flags exist).
 - Health endpoint: `GET /api/health`.
-- Frontend checks: `node --check frontend/app.js`, `node --check frontend/formatter.js`, `node frontend/formatter.js`.
-- Current server should be verified before asking the user to test.
-- Existing changes are uncommitted; preserve them and do not reset or checkout the worktree.
+- Contract tests: `python -m pytest tests/ -q` (hermetic — tmp DBs, stub LLM, no network).
+- Lint: `ruff check backend tests main.py` (bug rules; runs in CI on push/PR).
+- Frontend checks: `node --check frontend/js/*.js`.
+- Per-module assert self-checks: `python backend/store.py`, etc.
+- Server should be restarted to pick up backend changes (frontend is served from disk; hard-refresh for JS/CSS).
+- Commit on green; `main` tracks `origin/main`.
 
 ## Immediate next task
 
-Wire the existing PDF upload endpoint into the stable frontend with a clear file picker, upload progress/status, error handling, and PDF page citations. Keep this isolated and testable; do not redesign the entire app at the same time.
+Pick the top item off the roadmap above (beta users first). Whatever it is: verify against the running server, keep `tests/` + suites green, and commit on `main`.

@@ -1,5 +1,11 @@
 # OpenNotebook — Design Spec
 
+> **Status: SUPERSEDED (kept as history).** This spec describes the August 2026
+> MVP plan — including explicit non-goals (PDF ingestion, auto study guides)
+> that have since shipped. For the current architecture, read
+> `docs/PROJECT_CONTEXT.md` and `docs/superpowers/sdd/progress.md`. The
+> original decisions below are preserved as a record, not as instructions.
+
 > Working name. "NotebookLM" is Google's trademark — using it directly in the repo
 > name is legally risky for an open-source project. "OpenNotebook" sidesteps it.
 > Rename freely; nothing in the code couples to the name.
