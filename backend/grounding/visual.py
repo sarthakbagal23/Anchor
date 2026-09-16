@@ -42,11 +42,38 @@ VISION_SYSTEM = (
     "is provided."
 )
 
+# Which head passages the vision-routing rule inspects. Must stay 1: the
+# passages are interleaved round-robin across sources for citation diversity,
+# so positions 2+ do NOT reflect relevance order — a barely-related chunk can
+# sit at [2] above far better matches. Position [1] is always the globally
+# most relevant chunk (its source heads the interleave order), so "top-1 has a
+# page_num" is the only honest PDF-anchored test on post-interleave evidence.
+VISION_ANCHOR_TOP_N = 1
+
+
 # How many grounded passages the vision model actually sees. Small vision models
 # follow citation instructions far better over short evidence, so this stays low
 # even though the text path uses the full context budget. The passages are
 # already interleaved across sources by the pipeline, so the top-K span them.
 VISION_EVIDENCE_K = 6
+
+
+def evidence_anchors_pdf(cmap: dict, top_n: int = VISION_ANCHOR_TOP_N) -> bool:
+    """Routing rule: use the vision path only when the question's OWN grounded
+    evidence is anchored in a PDF page — i.e. one of the top-N passages carries
+    a page_num — never merely because a PDF exists somewhere in the workspace.
+
+    This is the load-bearing guard against the old bug where hasReadyPdf()
+    routed EVERY question in a mixed workspace through the slow non-streaming
+    vision model, including questions purely about a video. Keep it on the
+    retrieved evidence (cmap), not on workspace composition."""
+    if not cmap:
+        return False
+    for passage_num in sorted(cmap.keys())[:top_n]:
+        pc = cmap[passage_num] or {}
+        if pc.get("page_num") is not None:
+            return True
+    return False
 
 
 ANNOT_TAG = re.compile(
@@ -98,12 +125,23 @@ class VisualPipeline:
         self.base = base or Pipeline(store, cfg)
 
     def answer(self, query: str, workspace_id: int,
-               chat_history: list[dict] | None = None) -> dict:
-        """Return {answer, citations, annotations, page, source_title}."""
+               chat_history: list[dict] | None = None,
+               preground: tuple[list[dict], dict] | None = None) -> dict:
+        """Return {answer, citations, annotations, page, source_title}.
+
+        preground optionally carries an (msgs, cmap) pair from an earlier
+        Pipeline.ground() call for the same query, so callers that already
+        grounded (e.g. the unified /chat endpoint, which grounds once to
+        decide the route) don't pay for a second retrieval + rerank. When
+        omitted, grounding happens here exactly as before.
+        """
         from backend.config import data_dir as _dir
         from backend.llm_client import get_llm
 
-        msgs, cmap = self.base.ground(query, workspace_id, chat_history or [])
+        if preground is None:
+            msgs, cmap = self.base.ground(query, workspace_id, chat_history or [])
+        else:
+            msgs, cmap = preground
         llm = get_llm(self.cfg)
 
         # Shrink the evidence to what a small vision model can actually follow:

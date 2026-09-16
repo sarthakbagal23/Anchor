@@ -532,20 +532,39 @@ async def chat(ws_id: int, body: dict):
 
     def gen():
         try:
+            from backend.grounding.visual import VisualPipeline, evidence_anchors_pdf
+            from backend.llm_client import get_llm
+
             pipe = Pipeline(_STORE, _CFG)
-            acc = []
-            for delta in pipe.stream_answer(query, ws_id, chat_history=clean_history):
-                if delta.startswith("__CITATIONS__"):
-                    cmap = json.loads(delta[len("__CITATIONS__"):])
-                    yield f"event: citations\ndata: {json.dumps(cmap)}\n\n"
-                    _STORE.add_message(ws_id, "assistant", "".join(acc), citations=cmap)
+            # Single retrieval for the whole request: ground once, then route
+            # on the evidence itself (NOT on whether the workspace merely
+            # contains a PDF — that was the old hasReadyPdf bug that dragged
+            # every video question through the slow vision model).
+            msgs, cmap = pipe.ground(query, ws_id, chat_history=clean_history)
+            use_vision = bool(_CFG.llm.vision_model) and evidence_anchors_pdf(cmap)
+            yield f"event: route\ndata: {json.dumps({'mode': 'vision' if use_vision else 'text'})}\n\n"
+            if use_vision:
+                vp = VisualPipeline(_STORE, _CFG, base=pipe)
+                result = vp.answer(query, ws_id, clean_history, preground=(msgs, cmap))
+                full = result.get("answer") or ""
+                if result.get("page"):
+                    yield f"event: page\ndata: {json.dumps({'page': result['page'], 'annotations': result.get('annotations', [])})}\n\n"
+                for i in range(0, len(full), 120):
+                    yield f"data: {json.dumps({'token': full[i:i + 120]})}\n\n"
+                if not full.strip():
+                    yield f"event: error\ndata: {json.dumps({'error': 'The model returned an empty response. Try again.'})}\n\n"
                     return
+                _STORE.add_message(ws_id, "assistant", full, citations=result.get("citations", {}))
+                yield f"event: citations\ndata: {json.dumps(result.get('citations', {}))}\n\n"
+                return
+            acc = []
+            for delta in get_llm(_CFG).stream(msgs):
                 acc.append(delta)
                 yield f"data: {json.dumps({'token': delta})}\n\n"
-            # If stream ended without a __CITATIONS__ marker (no passages), still save and close
+            # No passages grounded: still save and close so the client never hangs.
             if acc:
-                _STORE.add_message(ws_id, "assistant", "".join(acc))
-                yield "event: citations\ndata: {}\n\n"
+                _STORE.add_message(ws_id, "assistant", "".join(acc), citations=cmap)
+            yield f"event: citations\ndata: {json.dumps(cmap)}\n\n"
             if not acc:
                 # A completely empty stream must surface as an explicit error, never
                 # a silent blank bubble the user misreads as a hang.
@@ -874,18 +893,47 @@ if __name__ == "__main__":
         f"stream must end with an explicit terminal error payload, got {sev}"
     assert sdone[0]["error"] == re_.json()["error"], "stream and POST must agree on the reason"
 
-    # chat SSE contract: tokens stream, then a citations event persists the reply.
-    # A completely empty model stream must surface an explicit error event, never
-    # a silent blank bubble the user misreads as a hang.
-    with patch("backend.grounding.pipeline.Pipeline.stream_answer",
-               return_value=iter(["hello ", "world", '__CITATIONS__{"1": {"chunk_id": 1}}'])):
+    # chat SSE contract: one grounding, then either streamed text tokens or a
+    # vision answer — always framed by route/citations events. A completely
+    # empty model stream must surface an explicit error event, never a silent
+    # blank bubble the user misreads as a hang.
+    _fake_msgs = [{"role": "user", "content": "hi"}]
+    _fake_cmap = {"1": {"chunk_id": 1}}
+    with patch("backend.grounding.pipeline.Pipeline.ground",
+               return_value=(_fake_msgs, _fake_cmap)) as mock_ground, \
+         patch("backend.llm_client.get_llm") as mock_llm:
+        mock_llm.return_value.stream.return_value = iter(["hello ", "world"])
         rchat = c.post(f"/api/workspaces/{ws_id}/chat", json={"message": "hi"})
     assert rchat.status_code == 200 and "hello" in rchat.text and "citations" in rchat.text
+    assert '"mode": "text"' in rchat.text, "text evidence must route to the streaming path"
     assert "empty response" not in rchat.text
+    assert mock_ground.call_count == 1, "exactly one retrieval per question"
     assert "world" in _STORE.list_messages(ws_id)[-1]["content"], "reply must be persisted"
-    with patch("backend.grounding.pipeline.Pipeline.stream_answer", return_value=iter([])):
+    with patch("backend.grounding.pipeline.Pipeline.ground",
+               return_value=(_fake_msgs, _fake_cmap)), \
+         patch("backend.llm_client.get_llm") as mock_llm0:
+        mock_llm0.return_value.stream.return_value = iter([])
         rchat0 = c.post(f"/api/workspaces/{ws_id}/chat", json={"message": "hi"})
     assert rchat0.status_code == 200 and "empty response" in rchat0.text
+
+    # vision routing: PDF-anchored evidence takes the vision path with the
+    # already-ground evidence passed through (no second retrieval); the page
+    # payload rides a page event the client renders into the PDF viewer.
+    _pdf_cmap = {"1": {"chunk_id": 9, "source_id": 3, "page_num": 4, "text": "t"}}
+    with patch("backend.grounding.pipeline.Pipeline.ground",
+               return_value=(_fake_msgs, _pdf_cmap)) as mock_ground_v, \
+         patch("backend.grounding.visual.VisualPipeline") as mock_vp:
+        mock_vp.return_value.answer.return_value = {
+            "answer": "seen answer", "citations": _pdf_cmap,
+            "annotations": [], "page": {"source_id": 3, "page_num": 4},
+        }
+        rchat_v = c.post(f"/api/workspaces/{ws_id}/chat", json={"message": "hi"})
+    assert rchat_v.status_code == 200 and '"mode": "vision"' in rchat_v.text
+    assert '"page_num": 4' in rchat_v.text and "seen answer" in rchat_v.text
+    assert mock_ground_v.call_count == 1, "vision path must reuse the routing retrieval"
+    _, vp_kwargs = mock_vp.return_value.answer.call_args
+    assert vp_kwargs.get("preground") == (_fake_msgs, _pdf_cmap), "preground must carry msgs+cmap"
+    assert "seen answer" in _STORE.list_messages(ws_id)[-1]["content"]
 
     # practice quiz: POST generates a server-graded MCQ quiz. The public payload
     # must NOT include the correct answer; the attempt endpoint grades server-side

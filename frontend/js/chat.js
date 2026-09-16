@@ -27,10 +27,6 @@
   // a thread + SQLite time) and the UI never shows two spinners at once.
   let activeSend = null;
 
-  function hasReadyPdf() {
-    return AppState.sources.some((s) => s.type === "pdf" && s.status === "ready");
-  }
-
   function bubble(role, innerHtml) {
     const div = document.createElement("div");
     div.className = `msg msg--${role}`;
@@ -92,11 +88,34 @@
       body.innerHTML = Citations.render(escapeHtml(full), AppState.citationMap, AppState.sources) + '<span class="cursor"></span>';
       container.scrollTop = container.scrollHeight;
     };
+    const showPage = (payload) => {
+      // Same display logic the old per-path visual call used: annotated overlay
+      // when the model pointed at regions, plain jump otherwise.
+      const data = payload || {};
+      if (data.annotations && data.annotations.length && data.page) {
+        AppState.pdfCurrentSourceId = data.page.source_id;
+        PDFViewer.showAnnotatedPage(AppState.workspaceId, data.page.source_id, data.page.page_num, data.annotations);
+      } else if (data.page) {
+        PDFViewer.loadStream(AppState.workspaceId, data.page.source_id).then(() => PDFViewer.jumpToPage(data.page.page_num));
+      }
+    };
 
     await SSE.readEventStream(res, {
       onEvent(name, payload) {
         send.markProgress(); // any frame proves the model is alive; resets the first-token deadline
-        if (name === "citations") {
+        if (name === "route") {
+          // The server grounded first and is telling us which path it took.
+          // Vision answers are one slow non-streaming model call, so they get
+          // a longer first-token deadline than the text stream's 120s.
+          const mode = (SSE.readJSON(payload, {}) || {}).mode;
+          if (mode === "vision") {
+            const label = body.querySelector(".thinking-txt");
+            if (label) label.textContent = "Reading the PDF";
+            send.armDeadline(300000);
+          }
+        } else if (name === "page") {
+          showPage(SSE.readJSON(payload, {}));
+        } else if (name === "citations") {
           stopTimer();
           AppState.citationMap = SSE.readJSON(payload, {});
           body.classList.remove("streaming");
@@ -142,20 +161,19 @@
         superseded: false, timedOut: false, settled: false,
         firstTokenTimer: null, settleOld: null,
         markProgress() { clearTimeout(send.firstTokenTimer); send.firstTokenTimer = null; },
+        // First-token deadline, re-armable: 120s default; the server's route
+        // event extends it when the slower vision path is taken.
+        armDeadline(ms) {
+          clearTimeout(send.firstTokenTimer);
+          send.firstTokenTimer = setTimeout(() => {
+            if (send.settled || send.superseded) return;
+            send.timedOut = true;
+            try { send.controller.abort(); } catch {}
+          }, ms);
+        },
       };
       activeSend = send;
-      // First-token deadline for whichever path is running: 120s with no SSE
-      // frame means the model is stalled, so abort instead of spinning forever.
-      // Re-armed below whenever we switch paths (send start -> text fallback).
-      const armFirstTokenTimer = () => {
-        clearTimeout(send.firstTokenTimer);
-        send.firstTokenTimer = setTimeout(() => {
-          if (send.settled || send.superseded) return;
-          send.timedOut = true;
-          try { send.controller.abort(); } catch {}
-        }, 120000);
-      };
-      armFirstTokenTimer();
+      send.armDeadline(120000);
 
       const container = $("messages");
       const empty = $("empty-state");
@@ -184,49 +202,13 @@
         if (cursor) cursor.remove();
       };
 
+      // Routing lives server-side now: /chat grounds once and answers over
+      // this single stream (route event first), so there is no workspace-level
+      // hasReadyPdf branch anymore — a video-only question in a mixed
+      // workspace streams text immediately instead of hanging on the vision
+      // model, and PDF-anchored questions still get the page event below.
       try {
-        if (hasReadyPdf()) {
-          assistant.querySelector(".thinking-txt").textContent = "Reading the PDF";
-          // The vision call is non-streaming with no server-side deadline, and the
-          // hosted vision model can stall for minutes. Bound the wait at 90s
-          // (a healthy round-trip is ~35s): on timeout abort and fall through to
-          // the normal grounded text stream instead of spinning forever.
-          const visualCtl = new AbortController();
-          const visualTimer = setTimeout(() => visualCtl.abort(), 90000);
-          const onSendAbort = () => { try { visualCtl.abort(); } catch {} };
-          send.controller.signal.addEventListener("abort", onSendAbort);
-          let data = null, visualFailed = false;
-          try {
-            data = await Api.chatVisual(AppState.workspaceId, question, { signal: visualCtl.signal });
-          } catch (vErr) {
-            visualFailed = true;
-            if (!send.superseded && vErr && vErr.name === "AbortError") {
-              const label = assistant.querySelector(".thinking-txt");
-              if (label) label.textContent = "Vision timed out — answering from text…";
-            }
-          } finally {
-            clearTimeout(visualTimer);
-            send.controller.signal.removeEventListener("abort", onSendAbort);
-          }
-          if (send.superseded) return;
-          if (!visualFailed) {
-            stopTimer();
-            AppState.citationMap = data.citations || {};
-            body.classList.remove("streaming");
-            body.innerHTML = formatFinal(data.answer || "");
-            if (data.annotations && data.annotations.length && data.page) {
-              AppState.pdfCurrentSourceId = data.page.source_id;
-              PDFViewer.showAnnotatedPage(AppState.workspaceId, data.page.source_id, data.page.page_num, data.annotations);
-            } else if (data.page) {
-              PDFViewer.loadStream(AppState.workspaceId, data.page.source_id).then(() => PDFViewer.jumpToPage(data.page.page_num));
-            }
-          } else {
-            armFirstTokenTimer(); // fresh 120s deadline for the text stream's first token
-            await streamAnswer(question, body, stopTimer, container, send);
-          }
-        } else {
-          await streamAnswer(question, body, stopTimer, container, send);
-        }
+        await streamAnswer(question, body, stopTimer, container, send);
       } catch (err) {
         // Superseded sends stay silent — the newer question owns the UI now.
         // Anything else (network error, both paths stalled) becomes an honest
