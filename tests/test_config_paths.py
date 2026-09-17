@@ -76,3 +76,55 @@ def test_default_points_at_anchor(monkeypatch, tmp_path):
     monkeypatch.delenv("OPENNOTEBOOK_CONFIG_DIR", raising=False)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     assert config_dir() == tmp_path / ".anchor"
+
+
+def test_failed_file_copy_leaves_no_target(tmp_path, monkeypatch):
+    import shutil
+
+    legacy = tmp_path / "config.yaml"
+    legacy.write_text("llm: {}", encoding="utf-8")
+    target = tmp_path / "new" / "anchor.db"
+
+    def boom(src, dst):
+        Path(dst).write_bytes(b"par")
+        raise OSError("disk on fire")
+
+    monkeypatch.setattr(shutil, "copy2", boom)
+    assert migrate_file(target, legacy, "settings") == legacy
+    assert not target.exists(), "a failed copy must not leave a partial target"
+    assert "migrating" not in {p.name for p in tmp_path.rglob("*")}, "temp leftovers must be cleaned"
+    assert legacy.read_text(encoding="utf-8") == "llm: {}"
+    # next boot retries cleanly once copying works again
+    monkeypatch.undo()
+    assert migrate_file(target, legacy, "settings") == target
+    assert target.read_text(encoding="utf-8") == "llm: {}"
+
+
+def test_failed_dir_copy_leaves_no_target(tmp_path, monkeypatch):
+    import shutil
+
+    legacy = tmp_path / "old"
+    (legacy / "data").mkdir(parents=True)
+    (legacy / "data" / "x.pdf").write_bytes(b"pdf")
+    target = tmp_path / "anchor"
+
+    def boom(src, dst, **kwargs):
+        Path(dst).mkdir(parents=True, exist_ok=True)
+        (Path(dst) / "half").write_bytes(b"par")
+        raise OSError("disk on fire")
+
+    monkeypatch.setattr(shutil, "copytree", boom)
+    assert migrate_file(target, legacy, "settings") == legacy
+    assert not target.exists(), "a failed tree copy must not leave a partial dir"
+    assert (legacy / "data" / "x.pdf").read_bytes() == b"pdf"
+
+
+def test_failed_db_backup_leaves_no_target(tmp_path):
+    # sqlite3.Connection is immutable (can't monkeypatch .backup), so fail the
+    # backup for real: a corrupt source file makes backup raise DatabaseError.
+    legacy = tmp_path / "old.db"
+    legacy.write_bytes(b"not a database at all")
+    target = tmp_path / "new.db"
+    assert migrate_db(target, legacy, "database") == legacy
+    assert not target.exists(), "a failed backup must not leave a partial database"
+    assert "migrating" not in {p.name for p in tmp_path.rglob("*")}

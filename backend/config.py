@@ -160,6 +160,22 @@ def _validate(cfg: AppConfig) -> AppConfig:
     return cfg
 
 
+def _migration_tmp(target: Path) -> Path:
+    return target.parent / (target.name + ".migrating")
+
+
+def _discard_tmp(tmp: Path) -> None:
+    """Best-effort removal of a leftover temp path (file or dir), so crashed
+    runs can't accumulate junk in the config dir across restarts."""
+    try:
+        if tmp.is_dir() and not tmp.is_symlink():
+            shutil.rmtree(tmp, ignore_errors=True)
+        else:
+            tmp.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
 def migrate_file(target: Path, legacy: Path, label: str) -> Path:
     """Return `target`, copying `legacy` there first when the target is missing.
 
@@ -167,14 +183,25 @@ def migrate_file(target: Path, legacy: Path, label: str) -> Path:
     any failure it warns and returns whichever path exists, preferring the
     target. This is how the OpenNotebook→Anchor rename moves settings without
     stranding user data.
+
+    Atomicity: the copy lands on a temp sibling and is os.replace()d into
+    place only after fully succeeding — a crash mid-copy can never leave a
+    partial file at the real target path (which would look "already migrated"
+    on the next boot and never be retried).
     """
     try:
         if not target.exists() and legacy.exists():
             target.parent.mkdir(parents=True, exist_ok=True)
-            if legacy.is_dir():
-                shutil.copytree(legacy, target)
-            else:
-                shutil.copy2(legacy, target)
+            tmp = _migration_tmp(target)
+            _discard_tmp(tmp)  # leftover from an interrupted run, if any
+            try:
+                if legacy.is_dir():
+                    shutil.copytree(legacy, tmp)
+                else:
+                    shutil.copy2(legacy, tmp)
+                os.replace(tmp, target)
+            finally:
+                _discard_tmp(tmp)
             print(f"[Anchor] Migrated {label} from {legacy} to {target} (original kept).")
     except Exception as e:
         print(f"[Anchor] WARNING: {label} migration failed ({e}); continuing.")
@@ -188,21 +215,29 @@ def migrate_db(target: Path, legacy: Path, label: str) -> Path:
     database is main-file + -shm/-wal sidecars, and copying only the main file
     silently drops every transaction since the last checkpoint. The online
     backup API copies a transactionally consistent snapshot instead, safe even
-    if another process currently holds the source open."""
+    if another process currently holds the source open. Like migrate_file, the
+    backup lands on a temp sibling first: a failed backup never leaves a
+    partial database at the real target path."""
     import sqlite3
 
     try:
         if not target.exists() and legacy.exists():
             target.parent.mkdir(parents=True, exist_ok=True)
-            src = sqlite3.connect(str(legacy))
+            tmp = _migration_tmp(target)
+            _discard_tmp(tmp)
             try:
-                dst = sqlite3.connect(str(target))
+                src = sqlite3.connect(str(legacy))
                 try:
-                    src.backup(dst)
+                    dst = sqlite3.connect(str(tmp))
+                    try:
+                        src.backup(dst)
+                    finally:
+                        dst.close()
                 finally:
-                    dst.close()
+                    src.close()
+                os.replace(tmp, target)
             finally:
-                src.close()
+                _discard_tmp(tmp)
             print(f"[Anchor] Migrated {label} from {legacy} to {target} (original kept).")
     except Exception as e:
         print(f"[Anchor] WARNING: {label} migration failed ({e}); continuing.")
