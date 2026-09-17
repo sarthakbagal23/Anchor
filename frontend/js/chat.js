@@ -240,7 +240,9 @@
     document.querySelectorAll(".cite.playing").forEach((c) => c.classList.remove("playing"));
     target.classList.add("playing", "visited");
 
-    const citation = Object.values(AppState.citationMap).find((c) => String(c.chunk_id) === target.dataset.chunkId);
+    const ctx = Citations.contextFor(target);
+    const map = ctx === "guide" ? AppState.guideCitations : AppState.citationMap;
+    const citation = Object.values(map).find((c) => String(c.chunk_id) === target.dataset.chunkId);
     if (!citation) return;
     const source = AppState.sources.find((s) => s.id === citation.source_id);
 

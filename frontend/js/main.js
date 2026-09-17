@@ -23,6 +23,7 @@
     AppState.workspace = ws;
     AppState.sources = ws.sources || [];
     AppState.citationMap = {};
+    AppState.guideCitations = {};
     AppState.pdfCurrentSourceId = null;
 
     $("ws-title").textContent = ws.title;

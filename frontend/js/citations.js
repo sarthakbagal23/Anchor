@@ -72,5 +72,20 @@
     });
   }
 
-  window.Citations = { fmtTime, sourceOrdinal, labelFor, render };
+  /* Which citation context a clicked token belongs to. Chat answers and
+   * study-guide sections both number passages from 1, so one shared lookup
+   * map lets a guide silently clobber chat citations (clicks then resolve
+   * against the wrong chunks and die quiet). Resolve by DOM container
+   * instead: #messages -> chat map, #study-body -> guide map. Unknown
+   * locations fall back to chat (today's behavior). Pure DOM traversal, so
+   * it is unit-testable without a browser (see task 4 notes). */
+  function contextFor(el) {
+    if (!el || typeof el.closest !== "function") return "chat";
+    if (el.closest("#study-body")) return "guide";
+    if (el.closest("#practice-body")) return "practice";
+    if (el.closest("#messages")) return "chat";
+    return "chat";
+  }
+
+  window.Citations = { fmtTime, sourceOrdinal, labelFor, render, contextFor };
 })();

@@ -22,7 +22,7 @@
   function sectionHtml(index, section) {
     const gapClass = section.covered ? "" : " study-section--gap";
     const tag = section.covered ? "" : '<span class="tag tag--gap">not in sources</span>';
-    const body = formatStudyText(section.body || "", (t) => RichText.inline(t, AppState.citationMap, AppState.sources));
+    const body = formatStudyText(section.body || "", (t) => RichText.inline(t, AppState.guideCitations, AppState.sources));
     return `<article class="study-section${gapClass}">
       <header class="study-section-head">
         <span class="section-num">${index}</span>
@@ -35,7 +35,7 @@
   }
 
   function mergeCitations(sections) {
-    (sections || []).forEach((s) => Object.assign(AppState.citationMap, s.citations || {}));
+    (sections || []).forEach((s) => Object.assign(AppState.guideCitations, s.citations || {}));
   }
 
   function renderGuide(data) {
@@ -54,6 +54,7 @@
     const body = $("study-body");
     if (!AppState.workspaceId) { body.innerHTML = `<p class="hint">Open a workspace first.</p>`; return; }
     body.innerHTML = thinking("Loading…");
+    AppState.guideCitations = {}; // fresh guide, fresh numbering space
     try {
       const data = await Api.getStudyGuide(AppState.workspaceId);
       mergeCitations(data.sections);
