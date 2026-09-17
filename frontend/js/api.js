@@ -32,9 +32,8 @@
 
   const get = (path) => request(path);
   const del = (path) => request(path, { method: "DELETE" });
-  const post = (path, body, init) => request(path, {
+  const post = (path, body) => request(path, {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}),
-    ...(init || {}),
   });
   const patch = (path, body) => request(path, {
     method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}),
@@ -76,9 +75,12 @@
         return data;
       }),
 
-    // chat — chatStreamUrl is fetched directly (POST + manual SSE parsing, see chat.js)
+    // chat — chatStreamUrl is fetched directly (POST + manual SSE parsing, see chat.js).
+    // NOTE: the POST /api/workspaces/{id}/chat/visual JSON route still exists
+    // server-side as a separate blocking contract; no client code calls it
+    // since routing moved into /chat (see evidence_anchors_pdf), so there is
+    // deliberately no wrapper for it here.
     chatStreamUrl: (wsId) => `/api/workspaces/${wsId}/chat`,
-    chatVisual: (wsId, message, options) => post(`/api/workspaces/${wsId}/chat/visual`, { message }, options),
 
     // study guide
     getStudyGuide: (wsId) => get(`/api/workspaces/${wsId}/study-guide`),

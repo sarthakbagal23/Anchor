@@ -1,8 +1,6 @@
 """Grounding orchestrator: retrieve -> rerank -> context-fit -> grounded
 prompt -> stream + citation map."""
 from __future__ import annotations
-import json
-from collections.abc import Iterator
 
 from backend.config import AppConfig
 from backend.store import Store
@@ -183,18 +181,6 @@ class Pipeline:
                     {"role": "user", "content": query}]
             return msgs, {}
         return self._build_prompt(query, kept, trimmed)
-
-    def stream_answer(self, query: str, workspace_id: int, chat_history: list[dict] | None = None,
-                      llm_stream=None) -> Iterator[str]:
-        msgs, cmap = self.ground(query, workspace_id, chat_history or [])
-        if llm_stream is None:
-            from backend.llm_client import get_llm
-            llm_stream = get_llm(self.cfg).stream
-        full = []
-        for delta in llm_stream(msgs):
-            full.append(delta)
-            yield delta
-        yield "__CITATIONS__" + json.dumps(cmap)
 
 
 def _fmt_ts(sec):
